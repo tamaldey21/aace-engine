@@ -45,8 +45,8 @@ function initLocalStorageDb() {
   if (!localStorage.getItem("aace_chat_logs")) {
     localStorage.setItem("aace_chat_logs", JSON.stringify([]));
   }
-  if (!localStorage.getItem("aace_api_url")) {
-    localStorage.setItem("aace_api_url", "http://localhost:3001");
+  if (!localStorage.getItem("aace_api_url") || localStorage.getItem("aace_api_url") === "http://localhost:3001") {
+    localStorage.setItem("aace_api_url", "https://aace-engine.onrender.com");
   }
   // Reset offline mode to false on page load/initialization so connection is always re-attempted
   localStorage.setItem("aace_offline_mode", "false");
@@ -57,8 +57,8 @@ export const AaceApi = {
   onModeChange: null,
 
   getApiBaseUrl() {
-    if (typeof window === "undefined") return "http://localhost:3001";
-    return localStorage.getItem("aace_api_url") || "http://localhost:3001";
+    if (typeof window === "undefined") return "https://aace-engine.onrender.com";
+    return localStorage.getItem("aace_api_url") || "https://aace-engine.onrender.com";
   },
 
   setApiBaseUrl(url) {
