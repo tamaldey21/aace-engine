@@ -36,6 +36,7 @@ export function HrPortal() {
   const [newEmpDept, setNewEmpDept] = useState("Engineering (AI Agent)");
   const [newEmpType, setNewEmpType] = useState("Full-Time");
   const [newEmpPasscode, setNewEmpPasscode] = useState("");
+  const [newEmpId, setNewEmpId] = useState("");
   
   // Selected email for preview modal
   const [selectedMail, setSelectedMail] = useState(null);
@@ -289,6 +290,7 @@ export function HrPortal() {
       role: newEmpRole.trim(),
       dept: newEmpDept,
       type: newEmpType,
+      empId: newEmpId.trim() || undefined,
       passcode: newEmpPasscode.trim() || undefined
     };
 
@@ -302,11 +304,62 @@ export function HrPortal() {
         setNewEmpName("");
         setNewEmpRole("");
         setNewEmpPasscode("");
-        appendChatMessage("bot", `[HR Operations Bot] Directory Update: Manually registered employee "${savedEmp.name}" to the global registry (${savedEmp.role} under ${savedEmp.dept}).`);
+        setNewEmpId("");
+        appendChatMessage("bot", `[HR Operations Bot] Directory Update: Manually registered employee "${savedEmp.name}" to the global registry (${savedEmp.role} under ${savedEmp.dept}) with ID ${savedEmp.empId}.`);
       })
       .catch(err => {
         console.error("Error creating employee:", err);
         alert("Failed to save employee to backend.");
+      });
+  };
+
+  const mapRoleToDept = (role) => {
+    const r = role.toLowerCase();
+    if (r.includes("ceo") || r.includes("founder")) return "Executive (Human)";
+    if (r.includes("coo") || r.includes("operations") || r.includes("ops")) return "Operations (AI Agent)";
+    if (r.includes("hr") || r.includes("human resources") || r.includes("recruiting")) return "HR (AI Agent)";
+    if (r.includes("product") || r.includes("pm")) return "Product (AI Agent)";
+    if (r.includes("design") || r.includes("ui") || r.includes("ux") || r.includes("artist")) return "Design (AI Agent)";
+    if (r.includes("qa") || r.includes("tester") || r.includes("test")) return "QA (AI Agent)";
+    if (r.includes("marketing") || r.includes("growth") || r.includes("sales")) return "Marketing (AI Agent)";
+    if (r.includes("legal") || r.includes("counsel") || r.includes("lawyer")) return "Legal (AI Agent)";
+    return "Engineering (AI Agent)";
+  };
+
+  const handleApproveCandidate = (cand) => {
+    const dept = mapRoleToDept(cand.role);
+    
+    const newEmpObj = {
+      name: cand.name,
+      role: cand.role,
+      dept: dept,
+      type: "Full-Time",
+      empId: cand.empId,
+      passcode: "employee"
+    };
+
+    AaceApi.request("/api/employees", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newEmpObj)
+    })
+      .then(savedEmp => {
+        setEmployees(prev => [...prev, savedEmp]);
+        appendChatMessage("bot", `[HR Operations Bot] Promotion Event: Candidate "${cand.name}" has been approved. Transferred to Employee directory with ID: ${cand.empId}.`);
+        
+        // Delete from candidates
+        return AaceApi.request("/api/candidates", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ empId: cand.empId })
+        });
+      })
+      .then(() => {
+        setCandidates(prev => prev.filter(c => c.empId !== cand.empId));
+      })
+      .catch(err => {
+        console.error("Error promoting candidate:", err);
+        alert("Failed to promote candidate to employee.");
       });
   };
 
@@ -581,6 +634,16 @@ export function HrPortal() {
               </div>
 
               <div className="input-group">
+                <label>Employee ID (Optional)</label>
+                <input 
+                  type="text" 
+                  placeholder="e.g. EMP-2026-1234 (auto-generated if empty)..." 
+                  value={newEmpId} 
+                  onChange={(e) => setNewEmpId(e.target.value)} 
+                />
+              </div>
+
+              <div className="input-group">
                 <label>Role Designation</label>
                 <select
                   value={newEmpRole}
@@ -690,9 +753,23 @@ export function HrPortal() {
                     Employee ID: {cand.empId}
                   </span>
                 </div>
-                <div style={{ textAlign: "right" }}>
+                <div style={{ textAlign: "right", display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "6px" }}>
                   <span className="engine-pill business" style={{ fontSize: "10px", padding: "2px 8px" }}>{cand.stage}</span>
-                  <span style={{ display: "block", fontSize: "10px", color: "var(--text-muted)", marginTop: "4px" }}>Status: {cand.status}</span>
+                  <span style={{ display: "block", fontSize: "10px", color: "var(--text-muted)" }}>Status: {cand.status}</span>
+                  <button 
+                    onClick={() => handleApproveCandidate(cand)}
+                    className="btn"
+                    style={{ 
+                      padding: "4px 8px", 
+                      fontSize: "10px", 
+                      background: "linear-gradient(135deg, var(--accent-purple), #7c3aed)",
+                      border: "none",
+                      color: "white",
+                      marginTop: "2px"
+                    }}
+                  >
+                    Approve Onboarding
+                  </button>
                 </div>
               </div>
             ))}

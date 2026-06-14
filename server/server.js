@@ -39,6 +39,18 @@ app.post("/api/candidates", async (req, res) => {
   }
 });
 
+// API: Delete candidate
+app.delete("/api/candidates", async (req, res) => {
+  try {
+    const { empId } = req.body;
+    if (!empId) return res.status(400).json({ error: "empId is required" });
+    const result = await Candidate.deleteOne({ empId });
+    res.json({ success: true, deletedCount: result.deletedCount });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // API: Get chat logs
 app.get("/api/chat-logs", async (req, res) => {
   try {

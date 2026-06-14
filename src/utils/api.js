@@ -240,13 +240,19 @@ export const AaceApi = {
         const nextId = "EMP-2026-" + Math.floor(1000 + Math.random() * 9000);
         const newCand = {
           ...body,
-          empId: nextId,
+          empId: body.empId || nextId,
           stage: body.stage || "Applied",
           status: body.status || "Active"
         };
         candidates.unshift(newCand);
         localStorage.setItem("aace_candidates", JSON.stringify(candidates));
         return newCand;
+      }
+      if (method === "DELETE") {
+        const { empId } = body || {};
+        const filtered = candidates.filter(c => c.empId !== empId);
+        localStorage.setItem("aace_candidates", JSON.stringify(filtered));
+        return { success: true, deletedCount: candidates.length - filtered.length };
       }
     }
 
