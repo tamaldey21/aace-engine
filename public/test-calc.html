@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AACE Calculator Pro</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    
+    :root {
+      --bg-dark: #090a0f;
+      --card-bg: rgba(17, 19, 31, 0.75);
+      --border: rgba(255, 255, 255, 0.08);
+      --text-main: #f3f4f6;
+      --text-secondary: #9ca3af;
+      
+      --accent-cyan: #06b6d4;
+      --accent-blue: #3b82f6;
+      --accent-purple: #8b5cf6;
+      --accent-green: #10b981;
+      --accent-red: #ef4444;
+      --accent-yellow: #f59e0b;
+      
+      --font-family: 'Outfit', sans-serif;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: var(--font-family);
+      background: var(--bg-dark);
+      background-image: 
+        radial-gradient(at 10% 10%, rgba(59, 130, 246, 0.08) 0px, transparent 50%),
+        radial-gradient(at 90% 90%, rgba(139, 92, 246, 0.08) 0px, transparent 50%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      overflow-x: hidden;
+    }
+    
+    .glass-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      padding: 30px;
+      width: 100%;
+      max-width: 500px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.3s ease, border-color 0.3s ease;
+    }
+    
+    .glass-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
+    }
+    
+    .btn {
+      background: linear-gradient(135deg, var(--accent-blue), #1d4ed8);
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-family: var(--font-family);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+    
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+    
+    .btn:active {
+      transform: translateY(0);
+    }
+    
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+    }
+    
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      box-shadow: none;
+    }
+    
+    input, select, textarea {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: white;
+      font-family: var(--font-family);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+    
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent-blue);
+    }
+    
+    h1, h2, h3 {
+      font-weight: 700;
+      color: white;
+      letter-spacing: -0.02em;
+    }
+    
+    .footer-note {
+      font-size: 11px;
+      color: var(--text-secondary);
+      text-align: center;
+      margin-top: 24px;
+      opacity: 0.7;
+    }
+
+    .glass-card {
+      max-width: 360px;
+    }
+    .display-container {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+      text-align: right;
+      min-height: 80px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      word-break: break-all;
+    }
+    .history-line {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+    .current-line {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--accent-cyan);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    .grid button {
+      height: 52px;
+      font-size: 16px;
+    }
+    .op {
+      background: rgba(139, 92, 246, 0.15);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      color: #c084fc;
+    }
+    .op:hover {
+      background: rgba(139, 92, 246, 0.3);
+    }
+    .eq {
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+    }
+  </style>
+</head>
+<body>
+  <div class="glass-card">
+    <h2 style="margin-bottom: 16px; font-size: 18px; text-align: center; color: var(--text-main);">Calculator Panel</h2>
+    <div class="display-container">
+      <div id="history" class="history-line"></div>
+      <div id="display" class="current-line">0</div>
+    </div>
+    <div class="grid">
+      <button class="btn btn-secondary op" onclick="clearCalc()">C</button>
+      <button class="btn btn-secondary op" onclick="press('back')">⌫</button>
+      <button class="btn btn-secondary op" onclick="press('%')">%</button>
+      <button class="btn btn-secondary op" onclick="press('/')">/</button>
+      
+      <button class="btn btn-secondary" onclick="press('7')">7</button>
+      <button class="btn btn-secondary" onclick="press('8')">8</button>
+      <button class="btn btn-secondary" onclick="press('9')">9</button>
+      <button class="btn btn-secondary op" onclick="press('*')">×</button>
+      
+      <button class="btn btn-secondary" onclick="press('4')">4</button>
+      <button class="btn btn-secondary" onclick="press('5')">5</button>
+      <button class="btn btn-secondary" onclick="press('6')">6</button>
+      <button class="btn btn-secondary op" onclick="press('-')">-</button>
+      
+      <button class="btn btn-secondary" onclick="press('1')">1</button>
+      <button class="btn btn-secondary" onclick="press('2')">2</button>
+      <button class="btn btn-secondary" onclick="press('3')">3</button>
+      <button class="btn btn-secondary op" onclick="press('+')">+</button>
+      
+      <button class="btn btn-secondary" onclick="press('00')">00</button>
+      <button class="btn btn-secondary" onclick="press('0')">0</button>
+      <button class="btn btn-secondary" onclick="press('.')">.</button>
+      <button class="btn eq" onclick="calculate()">=</button>
+    </div>
+    <p class="footer-note">Compiled autonomously by AACE Frontend Developer Bot</p>
+  </div>
+  <script>
+    const disp = document.getElementById('display');
+    const hist = document.getElementById('history');
+    let expr = '';
+
+    function press(val) {
+      if (val === 'back') {
+        expr = expr.slice(0, -1);
+      } else {
+        expr += val;
+      }
+      disp.innerText = expr || '0';
+    }
+
+    function clearCalc() {
+      expr = '';
+      disp.innerText = '0';
+      hist.innerText = '';
+    }
+
+    function calculate() {
+      if (!expr) return;
+      try {
+        const rawExpr = expr.replace(/×/g, '*');
+        const res = eval(rawExpr);
+        hist.innerText = expr + ' =';
+        expr = String(res);
+        disp.innerText = expr;
+      } catch {
+        disp.innerText = 'Error';
+        expr = '';
+      }
+    }
+  </script>
+</body>
+</html>

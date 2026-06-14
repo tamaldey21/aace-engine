@@ -1,0 +1,270 @@
+{
+  "candidates": [
+    {
+      "name": "sangita dutta",
+      "email": "dey7226@gmail.com",
+      "role": "Full-Stack Developer",
+      "empId": "EMP-2026-7435",
+      "stage": "Onboarding Stage",
+      "status": "Active",
+      "createdAt": "2026-06-14T04:27:19.035Z",
+      "_id": "ymsfu98"
+    },
+    {
+      "name": "Sangita Dutta",
+      "email": "dey7226@gmail.com",
+      "role": "Full-Stack Developer",
+      "empId": "EMP-2026-8951",
+      "stage": "Onboarding Stage",
+      "status": "Active",
+      "createdAt": "2026-06-14T04:28:12.786Z",
+      "_id": "ga4kwwm"
+    }
+  ],
+  "chatlogs": [
+    {
+      "portal": "hr",
+      "sender": "bot",
+      "text": "[HR Operations Bot] HR Operations Bot active. I am monitoring candidate onboarding and auditing employee directories. When you register a candidate, I will automatically synthesize their Employee ID and dispatch a welcome onboarding email.",
+      "createdAt": "2026-06-14T04:24:29.669Z",
+      "_id": "gcgby81"
+    },
+    {
+      "portal": "hr",
+      "sender": "bot",
+      "text": "[HR Operations Bot] Directory Update: Manually registered employee \"Sangita Dutta\" to the global registry (Full-Stack Developer under Executive (Human)).",
+      "createdAt": "2026-06-14T04:25:18.270Z",
+      "_id": "z79w6im"
+    },
+    {
+      "portal": "hr",
+      "sender": "bot",
+      "text": "[HR Operations Bot] Onboarding Event: Registered candidate \"sangita dutta\". Unique Employee ID generated: EMP-2026-7435. Outbox dispatch logged.",
+      "createdAt": "2026-06-14T04:27:19.038Z",
+      "_id": "ry7ws0u"
+    },
+    {
+      "portal": "hr",
+      "sender": "bot",
+      "text": "[HR Operations Bot] Live dispatch skipped: EmailJS credentials not set. Simulated welcome email generated in Outbox.",
+      "createdAt": "2026-06-14T04:27:19.041Z",
+      "_id": "g9k96p3"
+    },
+    {
+      "portal": "hr",
+      "sender": "bot",
+      "text": "[HR Operations Bot] Onboarding Event: Registered candidate \"Sangita Dutta\". Unique Employee ID generated: EMP-2026-8951. Outbox dispatch logged.",
+      "createdAt": "2026-06-14T04:28:12.789Z",
+      "_id": "cfvn59i"
+    },
+    {
+      "portal": "hr",
+      "sender": "bot",
+      "text": "[HR Operations Bot] Live dispatch skipped: EmailJS credentials not set. Simulated welcome email generated in Outbox.",
+      "createdAt": "2026-06-14T04:28:12.792Z",
+      "_id": "tjel05t"
+    },
+    {
+      "portal": "hr",
+      "sender": "bot",
+      "text": "[HR Operations Bot] Directory Update: Manually registered employee \"rupsa roy\" to the global registry (Frontend Developer under Executive (Human)).",
+      "createdAt": "2026-06-14T04:43:31.027Z",
+      "_id": "vw9kv9x"
+    }
+  ],
+  "memories": [
+    {
+      "text": "Engineering stack parameters are bound to Vite + React + Node.js.",
+      "createdAt": "2026-06-14T04:05:06.394Z",
+      "_id": "y0rrzsu"
+    },
+    {
+      "text": "Internal databases are hosted on SQL/NoSQL containers under strict IAM control.",
+      "createdAt": "2026-06-14T04:05:06.399Z",
+      "_id": "uo0tcag"
+    },
+    {
+      "text": "Compliance rules require W-9 and NDA verification for all contract vendors.",
+      "createdAt": "2026-06-14T04:05:06.403Z",
+      "_id": "u2vqvlg"
+    },
+    {
+      "text": "Maximum discount thresholds for account representatives is capped at 15%.",
+      "createdAt": "2026-06-14T04:05:06.407Z",
+      "_id": "5oc8pxz"
+    },
+    {
+      "text": "Customer support triage paths must always maintain a direct escalation link to human agents.",
+      "createdAt": "2026-06-14T04:05:06.410Z",
+      "_id": "npq0z6y"
+    }
+  ],
+  "employees": [
+    {
+      "name": "Tamal Dey",
+      "role": "CEO & Founder",
+      "dept": "Executive (Human)",
+      "empId": "EMP-2026-0001",
+      "type": "Full-Time",
+      "passcode": "tamaldey21",
+      "createdAt": "2026-06-14T03:52:46.126Z",
+      "_id": "s3tnqtc"
+    },
+    {
+      "name": "clara",
+      "role": "COO Operations Bot",
+      "dept": "Operations (AI Agent)",
+      "empId": "EMP-2026-0002",
+      "type": "Autonomous",
+      "passcode": "clara",
+      "createdAt": "2026-06-14T03:52:46.128Z",
+      "_id": "me674k3"
+    },
+    {
+      "name": "john",
+      "role": "CTO Architecture Bot",
+      "dept": "Engineering (AI Agent)",
+      "empId": "EMP-2026-0003",
+      "type": "Autonomous",
+      "passcode": "john",
+      "createdAt": "2026-06-14T03:52:46.130Z",
+      "_id": "f9b3kwb"
+    },
+    {
+      "name": "bill",
+      "role": "Frontend Dev Bot",
+      "dept": "Engineering (AI Agent)",
+      "empId": "EMP-2026-0004",
+      "type": "Autonomous",
+      "passcode": "bill",
+      "createdAt": "2026-06-14T03:52:46.131Z",
+      "_id": "3f1vuq2"
+    },
+    {
+      "name": "sarah",
+      "role": "HR Operations Bot",
+      "dept": "HR (AI Agent)",
+      "empId": "EMP-2026-0005",
+      "type": "Autonomous",
+      "passcode": "sarah",
+      "createdAt": "2026-06-14T03:52:46.133Z",
+      "_id": "812llt8"
+    },
+    {
+      "name": "alex",
+      "role": "Lead Product Manager",
+      "dept": "Product (AI Agent)",
+      "empId": "EMP-2026-0006",
+      "type": "Autonomous",
+      "passcode": "alex",
+      "createdAt": "2026-06-14T03:52:46.134Z",
+      "_id": "ifh2quy"
+    },
+    {
+      "name": "lisa",
+      "role": "Lead UI/UX Designer",
+      "dept": "Design (AI Agent)",
+      "empId": "EMP-2026-0007",
+      "type": "Autonomous",
+      "passcode": "lisa",
+      "createdAt": "2026-06-14T03:52:46.135Z",
+      "_id": "nytj0s4"
+    },
+    {
+      "name": "kevin",
+      "role": "Lead QA Tester",
+      "dept": "QA (AI Agent)",
+      "empId": "EMP-2026-0008",
+      "type": "Autonomous",
+      "passcode": "kevin",
+      "createdAt": "2026-06-14T03:52:46.136Z",
+      "_id": "1incpje"
+    },
+    {
+      "name": "rachel",
+      "role": "Lead Marketing Manager",
+      "dept": "Marketing (AI Agent)",
+      "empId": "EMP-2026-0009",
+      "type": "Autonomous",
+      "passcode": "rachel",
+      "createdAt": "2026-06-14T03:52:46.137Z",
+      "_id": "ew4cf4f"
+    },
+    {
+      "name": "harvey",
+      "role": "Lead Legal Counsel",
+      "dept": "Legal (AI Agent)",
+      "empId": "EMP-2026-0010",
+      "type": "Autonomous",
+      "passcode": "harvey",
+      "createdAt": "2026-06-14T03:52:46.138Z",
+      "_id": "mai2frl"
+    },
+    {
+      "name": "Ayush Dey",
+      "role": "frontend developer",
+      "dept": "Engineering (AI Agent)",
+      "empId": "EMP-2026-3254",
+      "type": "Full-Time",
+      "passcode": "bb328RTS",
+      "createdAt": "2026-06-14T03:52:46.140Z",
+      "_id": "psy64df"
+    },
+    {
+      "name": "Ankit Roy",
+      "role": "Devop",
+      "dept": "Executive (Human)",
+      "empId": "EMP-2026-2596",
+      "type": "Full-Time",
+      "passcode": "8ballpool",
+      "createdAt": "2026-06-14T03:52:46.141Z",
+      "_id": "ta96tvo"
+    },
+    {
+      "name": "Sangita Dutta",
+      "role": "Full-Stack Developer",
+      "dept": "Executive (Human)",
+      "type": "Full-Time",
+      "empId": "EMP-2026-9541",
+      "passcode": "sangita123",
+      "createdAt": "2026-06-14T04:25:18.257Z",
+      "_id": "tadm2ye"
+    },
+    {
+      "name": "rupsa roy",
+      "role": "Frontend Developer",
+      "dept": "Executive (Human)",
+      "type": "Full-Time",
+      "empId": "EMP-2026-8986",
+      "passcode": "tamaldey21",
+      "createdAt": "2026-06-14T04:43:31.011Z",
+      "_id": "2j87kt8"
+    }
+  ],
+  "attendances": [
+    {
+      "empId": "EMP-2026-0003",
+      "name": "john",
+      "role": "CTO Architecture Bot",
+      "status": "Left",
+      "loginTime": "2026-06-14T03:53:10.398Z",
+      "_id": "x3pvh89"
+    },
+    {
+      "empId": "EMP-2026-2596",
+      "name": "Ankit Roy",
+      "role": "Devop",
+      "status": "Left",
+      "loginTime": "2026-06-14T03:54:59.896Z",
+      "_id": "ljjkrel"
+    },
+    {
+      "empId": "EMP-2026-3254",
+      "name": "Ayush Dey",
+      "role": "frontend developer",
+      "status": "Left",
+      "loginTime": "2026-06-14T03:55:15.921Z",
+      "_id": "whck6pw"
+    }
+  ]
+}

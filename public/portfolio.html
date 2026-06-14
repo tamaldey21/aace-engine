@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Developer Portfolio Console - AACE Prototype</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-dark: #0a0b10;
+      --bg-card: rgba(18, 20, 32, 0.65);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --accent-purple: #8b5cf6;
+      --accent-cyan: #06b6d4;
+      --accent-emerald: #10b981;
+      --text-primary: #f3f4f6;
+      --text-secondary: #9ca3af;
+      --text-muted: #6b7280;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(139, 92, 246, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(6, 182, 212, 0.15) 0%, transparent 40%),
+        linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding: 40px 24px;
+      line-height: 1.6;
+    }
+
+    /* Container */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    /* Top Navigation bar */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 24px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      backdrop-filter: blur(16px);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+
+    .brand-logo {
+      font-weight: 800;
+      font-size: 22px;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, var(--accent-purple), var(--accent-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* PulseDot implementation in CSS */
+    .pulse-dot-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      padding: 6px 12px;
+      border-radius: 20px;
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--accent-emerald);
+      box-shadow: 0 0 12px var(--accent-emerald);
+      animation: pulse 2s infinite;
+    }
+
+    .pulse-text {
+      font-family: 'Fira Code', monospace;
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: 600;
+      color: var(--accent-emerald);
+      letter-spacing: 0.5px;
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: scale(0.9);
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+      }
+      70% {
+        transform: scale(1.1);
+        box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+      }
+      100% {
+        transform: scale(0.9);
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+      }
+    }
+
+    /* Grid Layout */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+    }
+
+    @media (max-width: 968px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Glass Cards */
+    .glass-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      backdrop-filter: blur(16px);
+      border-radius: 20px;
+      padding: 32px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .glass-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent-purple), var(--accent-cyan));
+      opacity: 0.8;
+    }
+
+    /* Terminal Console Panel */
+    .terminal-container {
+      font-family: 'Fira Code', monospace;
+      background: rgba(8, 9, 16, 0.9);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px;
+      color: #38bdf8;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      height: 320px;
+      overflow-y: auto;
+      box-shadow: inset 0 4px 24px rgba(0,0,0,0.5);
+    }
+
+    .terminal-header {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .dot-btn {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .dot-red { background: #ef4444; }
+    .dot-yellow { background: #f59e0b; }
+    .dot-green { background: #10b981; }
+
+    .terminal-line {
+      line-height: 1.5;
+      font-size: 13px;
+    }
+
+    .terminal-prompt {
+      color: var(--accent-purple);
+      font-weight: 600;
+    }
+
+    .terminal-input-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #f3f4f6;
+    }
+
+    .terminal-input {
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #f3f4f6;
+      font-family: inherit;
+      font-size: 13px;
+      flex: 1;
+    }
+
+    /* Projects Grid inside Card */
+    .projects-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .project-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+      cursor: pointer;
+    }
+
+    .project-card:hover {
+      transform: translateY(-2px);
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(6, 182, 212, 0.3);
+    }
+
+    .project-info h4 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .project-info p {
+      font-size: 12.5px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+
+    .pill-tags {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .tag {
+      font-size: 10px;
+      font-family: 'Fira Code', monospace;
+      background: rgba(139, 92, 246, 0.1);
+      color: #a78bfa;
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid rgba(139, 92, 246, 0.2);
+    }
+
+    .status-pill {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .status-active {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--accent-emerald);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    /* Terminal buttons quick access */
+    .terminal-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .action-btn {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-color);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-family: 'Fira Code', monospace;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .action-btn:hover {
+      background: rgba(139, 92, 246, 0.1);
+      border-color: var(--accent-purple);
+      color: #a78bfa;
+    }
+
+    /* Introduction styling */
+    .intro-header h1 {
+      font-size: clamp(28px, 4vw, 42px);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -1px;
+    }
+
+    .intro-header h1 span {
+      background: linear-gradient(135deg, var(--accent-purple), var(--accent-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .intro-text {
+      color: var(--text-secondary);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Header Navigation -->
+    <header>
+      <div class="brand-logo">AACE.CONSOLE</div>
+      
+      <!-- Interactive PulseDot Component -->
+      <div class="pulse-dot-container">
+        <div class="pulse-dot"></div>
+        <span class="pulse-text">status: active</span>
+      </div>
+    </header>
+
+    <!-- Main Content Layout Grid -->
+    <main class="main-grid">
+      
+      <!-- Left Column: Biography & Terminal Command Console -->
+      <div class="glass-card">
+        <div class="intro-header">
+          <h1>Building <span>Autonomous Web Experiences</span></h1>
+        </div>
+        
+        <p class="intro-text">
+          Welcome to the interactive prototype command console. This portal provides an inline command simulator demonstrating how developers and AI agents collaborate in real-time.
+        </p>
+
+        <!-- Command Console Simulator -->
+        <div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px; align-items: center;">
+            <span style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Interactive Terminal Console</span>
+            <span style="font-size: 10px; font-family: 'Fira Code', monospace; color: var(--text-muted);">v1.0.0</span>
+          </div>
+
+          <div class="terminal-container" id="terminalLog">
+            <div class="terminal-header">
+              <span class="dot-btn dot-red"></span>
+              <span class="dot-btn dot-yellow"></span>
+              <span class="dot-btn dot-green"></span>
+            </div>
+            <div class="terminal-line"><span style="color: #6b7280;">[System initialized successfully]</span></div>
+            <div class="terminal-line">Type <span style="color: var(--accent-cyan);">help</span> to list available commands or click the shortcuts below.</div>
+            <div class="terminal-line" id="lastLine"></div>
+            
+            <!-- Dynamic input row -->
+            <div class="terminal-input-line">
+              <span class="terminal-prompt">aace-agent@user:~$</span>
+              <input type="text" class="terminal-input" id="terminalInput" autofocus autocomplete="off" placeholder="Type a command...">
+            </div>
+          </div>
+
+          <!-- Shortcuts buttons -->
+          <div class="terminal-actions">
+            <button class="action-btn" onclick="executeCommand('about')">/about</button>
+            <button class="action-btn" onclick="executeCommand('skills')">/skills</button>
+            <button class="action-btn" onclick="executeCommand('system')">/system-status</button>
+            <button class="action-btn" onclick="executeCommand('clear')">/clear</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Projects & Active Repositories -->
+      <div class="glass-card">
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <h3 style="font-size: 20px; font-weight: 700; letter-spacing: -0.5px;">Active Project Vault</h3>
+          <p style="font-size: 13.5px; color: var(--text-secondary)">Repositories compiled and structured by the AACE developer bots.</p>
+        </div>
+
+        <div class="projects-list">
+          <!-- Project 1 -->
+          <div class="project-card" onclick="executeCommand('project aace')">
+            <div class="project-info">
+              <h4>aace-core-engine</h4>
+              <p>Autonomous company operations scheduler & document router.</p>
+              <div class="pill-tags">
+                <span class="tag">Node.js</span>
+                <span class="tag">MongoDB</span>
+                <span class="tag">Express</span>
+              </div>
+            </div>
+            <span class="status-pill status-active">Compiled</span>
+          </div>
+
+          <!-- Project 2 -->
+          <div class="project-card" onclick="executeCommand('project terminal')">
+            <div class="project-info">
+              <h4>interactive-web-console</h4>
+              <p>Modular micro-interaction terminal frame using ES6 modules.</p>
+              <div class="pill-tags">
+                <span class="tag">HTML5</span>
+                <span class="tag">Vanilla CSS</span>
+                <span class="tag">Vite</span>
+              </div>
+            </div>
+            <span class="status-pill status-active">Active</span>
+          </div>
+
+          <!-- Project 3 -->
+          <div class="project-card" onclick="executeCommand('project database')">
+            <div class="project-info">
+              <h4>memory-ledger-vault</h4>
+              <p>Self-seeding audit collections with secure auto-attendance triggers.</p>
+              <div class="pill-tags">
+                <span class="tag">Mongoose</span>
+                <span class="tag">MongoDB</span>
+                <span class="tag">Dotenv</span>
+              </div>
+            </div>
+            <span class="status-pill status-active">Linked</span>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- JavaScript Terminal Engine -->
+  <script>
+    const terminalInput = document.getElementById('terminalInput');
+    const terminalLog = document.getElementById('terminalLog');
+    const lastLine = document.getElementById('lastLine');
+
+    // Terminal command history parser
+    terminalInput.addEventListener('keydown', function(event) {
+      if (event.key === 'Enter') {
+        const cmd = terminalInput.value.trim();
+        terminalInput.value = '';
+        if (cmd) {
+          executeCommand(cmd);
+        }
+      }
+    });
+
+    function printLine(text, type = '') {
+      const newLine = document.createElement('div');
+      newLine.className = 'terminal-line';
+      if (type === 'error') {
+        newLine.style.color = '#ef4444';
+      } else if (type === 'success') {
+        newLine.style.color = '#10b981';
+      } else if (type === 'info') {
+        newLine.style.color = '#06b6d4';
+      }
+      newLine.innerHTML = text;
+      terminalLog.insertBefore(newLine, terminalLog.lastElementChild);
+      terminalLog.scrollTop = terminalLog.scrollHeight;
+    }
+
+    function executeCommand(commandString) {
+      const inputVal = commandString.toLowerCase().trim();
+      printLine(`<span class="terminal-prompt">aace-agent@user:~$</span> \${commandString}`);
+
+      if (inputVal === 'clear') {
+        // Clear all except system init and header
+        const lines = terminalLog.querySelectorAll('.terminal-line');
+        lines.forEach((l, index) => {
+          if (index > 1 && l.id !== 'lastLine') {
+            l.remove();
+          }
+        });
+        return;
+      }
+
+      if (inputVal === 'help') {
+        printLine('Available Terminal Commands:', 'info');
+        printLine('  <span style="color:#a78bfa;">about</span>         - Details about the AACE console prototype');
+        printLine('  <span style="color:#a78bfa;">skills</span>        - Technical parameters and developer stacks');
+        printLine('  <span style="color:#a78bfa;">system</span>        - Global node statuses and connection updates');
+        printLine('  <span style="color:#a78bfa;">project [id]</span>  - Inspect specific repositories (e.g. project aace)');
+        printLine('  <span style="color:#a78bfa;">clear</span>         - Flush console buffer');
+        return;
+      }
+
+      if (inputVal === 'about') {
+        printLine('AACE Developer Platform Console:', 'info');
+        printLine('This prototype demonstrates how developers build pages using state-of-the-art micro-interactions. The interface uses modern glassmorphism (radial gradient backdrops, 12px blurring filters) combined with responsive flex grids.');
+        return;
+      }
+
+      if (inputVal === 'skills') {
+        printLine('Engineering Parameters Stack:', 'info');
+        printLine('  - <span style="color:#38bdf8;">Frontend</span>: React, Vite, ES6 modules, Vanilla CSS custom HSL tokens');
+        printLine('  - <span style="color:#38bdf8;">Backend</span>: Node.js, Express framework, REST Routing');
+        printLine('  - <span style="color:#38bdf8;">Database</span>: MongoDB Atlas, Mongoose schemas, auto-seeding');
+        return;
+      }
+
+      if (inputVal === 'system') {
+        printLine('Checking System Parameters...', 'info');
+        setTimeout(() => {
+          printLine('  ✔ MongoDB: connected (aace-cluster-primary)', 'success');
+          printLine('  ✔ API Server: online (http://localhost:3001)', 'success');
+          printLine('  ✔ Vite Dev: active (http://localhost:5173)', 'success');
+          printLine('  ✔ Auto-Attendance Trigger: active', 'success');
+        }, 300);
+        return;
+      }
+
+      if (inputVal.startsWith('project ')) {
+        const projId = inputVal.substring(8).trim();
+        if (projId === 'aace') {
+          printLine('Inspecting: aace-core-engine...', 'info');
+          printLine('  Status: Stable');
+          printLine('  Features: Automatic Employee Onboarding email gateways, ChatLogs collections, Context audit logs.');
+        } else if (projId === 'terminal') {
+          printLine('Inspecting: interactive-web-console...', 'info');
+          printLine('  Status: Active');
+          printLine('  Features: Custom terminal simulator built using native DOM APIs, asynchronous CLI listeners.');
+        } else if (projId === 'database') {
+          printLine('Inspecting: memory-ledger-vault...', 'info');
+          printLine('  Status: Linked');
+          printLine('  Features: MongoDB container hooks, once-per-day check-in triggers, status validation schemas.');
+        } else {
+          printLine(`Unknown project ID: "\${projId}". Try: aace, terminal, database`, 'error');
+        }
+        return;
+      }
+
+      // Default fallback
+      printLine(`Command not recognized: "\${commandString}". Type 'help' for commands.`, 'error');
+    }
+  </script>
+</body>
+</html>

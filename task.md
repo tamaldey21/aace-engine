@@ -1,0 +1,36 @@
+# Task Checklist: Role Designation Dropdowns & Auto-Attendance System
+
+- [x] Change "Target Role Position" in Candidate Onboarding form to select dropdown
+- [x] Change "Role Designation" in Direct Employee Registration form to select dropdown
+- [x] Initialize state variables to `Frontend Developer` by default
+- [x] Configure Attendance Schema & Model in MongoDB (`db.js`)
+- [x] Implement login-triggered auto-attendance logging in Backend API (`server.js`)
+- [x] Create Live Attendance Ledger card UI in HR Operations (`HrPortal.jsx`)
+- [x] Verify production compilation (`npm run build`)
+- [x] Implement and execute automated E2E login and attendance verification test (`test_attendance.js`)
+
+- [x] Security Setup
+  - [x] Add `.env` pattern to `.gitignore`
+  - [x] Create local `.env` file containing 9 API keys
+- [x] Credentials Modal Update
+  - [x] Declare and load 9 role-specific keys states in `src/components/ConsoleTab.jsx`
+  - [x] Update Credentials Settings modal UI in `src/components/ConsoleTab.jsx` to display 9 inputs
+  - [x] Update routing target names and fallback logs in `src/components/ConsoleTab.jsx`
+- [x] HR Portal Customization
+  - [x] Import `emailjs` in `HrPortal.jsx`
+  - [x] Load config from `localStorage` with fallback to `import.meta.env`
+  - [x] Add "EmailJS Integration Setup" configuration card in `HrPortal.jsx`
+  - [x] Add candidate welcome email sending using `emailjs.send`
+  - [x] Update HR bot chat logs with sending status in `src/components/ConsoleTab.jsx`
+- [x] Kimi API Request Executor
+  - [x] Update `runAACE` to receive the 9 keys object in `src/utils/ai.js`
+  - [x] Implement fetch request to `https://api.bluesminds.com/v1/chat/completions` using `Kimi-K2.6-azure` model and the respective token
+  - [x] Maintain Gemini fallback logic
+- [x] Verification & Build Checks
+  - [x] Run `npm run build` to confirm compiler compatibility
+- [x] Developer Board Chat Fixes
+  - [x] Add auto-scroll behavior via useRef and useEffect in `DevPortal.jsx`
+  - [x] Set explicit text color `var(--text-primary)` and `whiteSpace: "pre-wrap"` style properties on message bubbles
+  - [x] Make split layout grid responsive (`className="chat-profile-grid"`) and define layout styles in `src/index.css`
+  - [x] Increase chat container box and profile card heights to `420px` for better readability
+  - [x] Support immediate query dispatch on click for quick helper buttons
