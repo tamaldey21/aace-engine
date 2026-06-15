@@ -7,7 +7,12 @@
 - [x] Implement login-triggered auto-attendance logging in Backend API (`server.js`)
 - [x] Create Live Attendance Ledger card UI in HR Operations (`HrPortal.jsx`)
 - [x] Verify production compilation (`npm run build`)
-- [x] Implement and execute automated E2E login and attendance verification test (`test_attendance.js`)
+- [x] Rebuild and package frontend `dist.zip` and commit/push changes
+
+- [ ] Add `N8N_WEBHOOK_URL` configuration to `.env`
+- [ ] Implement `triggerN8nWebhook` helper inside `server/server.js`
+- [ ] Integrate n8n webhook triggers into candidates, employees, login, and logout API endpoints in `server/server.js`
+- [ ] Build and push the updated backend to GitHub verification test (`test_attendance.js`)
 
 - [x] Security Setup
   - [x] Add `.env` pattern to `.gitignore`

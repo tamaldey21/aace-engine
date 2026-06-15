@@ -9,6 +9,31 @@ import { compileHTML } from "./compiler.js";
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Centralized n8n Webhook Dispatcher
+async function triggerN8nWebhook(event, data) {
+  const webhookUrl = process.env.N8N_WEBHOOK_URL;
+  if (!webhookUrl || !webhookUrl.trim()) return;
+
+  try {
+    const response = await fetch(webhookUrl.trim(), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        event,
+        timestamp: new Date().toISOString(),
+        data
+      })
+    });
+    if (!response.ok) {
+      console.warn(`[n8n Webhook] Warning: Server returned status ${response.status}`);
+    } else {
+      console.log(`[n8n Webhook] Dispatched event "${event}" successfully.`);
+    }
+  } catch (err) {
+    console.error(`[n8n Webhook] Dispatch error for event "${event}":`, err.message);
+  }
+}
+
 app.use(cors());
 app.use(express.json());
 
@@ -33,6 +58,7 @@ app.post("/api/candidates", async (req, res) => {
     const { name, email, role, empId, stage, status } = req.body;
     const newCand = new Candidate({ name, email, role, empId, stage, status });
     const saved = await newCand.save();
+    triggerN8nWebhook("candidate_onboarded", saved);
     res.json(saved);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -276,11 +302,13 @@ app.post("/api/login", async (req, res) => {
               status: "Present",
               loginTime: new Date()
             });
-            await attendance.save();
+            const savedLog = await attendance.save();
+            triggerN8nWebhook("employee_clock_in", savedLog);
           } else {
             existingLog.status = "Present";
             existingLog.loginTime = new Date();
-            await existingLog.save();
+            const savedLog = await existingLog.save();
+            triggerN8nWebhook("employee_clock_in", savedLog);
           }
         } catch (attErr) {
           console.error("Error creating/updating attendance log:", attErr);
@@ -313,6 +341,7 @@ app.post("/api/employees", async (req, res) => {
       passcode: generatedPasscode
     });
     const saved = await newEmp.save();
+    triggerN8nWebhook("employee_created", saved);
     res.json(saved);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -388,7 +417,8 @@ app.post("/api/logout", async (req, res) => {
 
     if (existingLog) {
       existingLog.status = "Left";
-      await existingLog.save();
+      const savedLog = await existingLog.save();
+      triggerN8nWebhook("employee_clock_out", savedLog);
       return res.json({ success: true, message: "Attendance status updated to Left." });
     }
 
