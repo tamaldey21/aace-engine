@@ -108,10 +108,10 @@ export function ExecutiveChat() {
             onChange={(e) => setSelectedProjectId(e.target.value)}
             style={{
               padding: "8px",
-              background: "rgba(0,0,0,0.5)",
+              background: "var(--bg-input)",
               border: "1px solid var(--border-color)",
               borderRadius: "6px",
-              color: "white",
+              color: "var(--text-primary)",
               width: "100%",
               marginTop: "4px",
               fontSize: "12px",
@@ -156,7 +156,7 @@ export function ExecutiveChat() {
       <div className="glass-card" style={{ display: "flex", flexDirection: "column", height: "100%", padding: 0, overflow: "hidden" }}>
         
         {/* Chat header with Search */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 20px", borderBottom: "1px solid var(--border-color)", background: "rgba(0,0,0,0.2)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 20px", borderBottom: "1px solid var(--border-color)", background: "var(--bg-card)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <Hash size={16} style={{ color: "var(--accent-cyan)" }} />
             <h3 style={{ margin: 0, fontSize: "15px", fontWeight: "bold" }}>{activeChannel.replace("#", "")} channel</h3>
@@ -170,8 +170,8 @@ export function ExecutiveChat() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 style={{
-                  padding: "6px 12px 6px 30px", background: "rgba(0,0,0,0.3)", border: "1px solid var(--border-color)",
-                  borderRadius: "20px", color: "white", fontSize: "12px", outline: "none", width: "180px"
+                  padding: "6px 12px 6px 30px", background: "var(--bg-input)", border: "1px solid var(--border-color)",
+                  borderRadius: "20px", color: "var(--text-primary)", fontSize: "12px", outline: "none", width: "180px"
                 }}
               />
               <Search size={12} style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)" }} />
@@ -204,7 +204,7 @@ export function ExecutiveChat() {
                   </div>
                   <div>
                     <div style={{ display: "flex", alignItems: "baseline", gap: "8px" }}>
-                      <span style={{ fontSize: "12px", fontWeight: "bold", color: "white" }}>{msg.sender}</span>
+                      <span style={{ fontSize: "12px", fontWeight: "bold", color: "var(--text-primary)" }}>{msg.sender}</span>
                       <span style={{ fontSize: "9px", color: "var(--text-muted)" }}>{new Date(msg.createdAt).toLocaleTimeString()}</span>
                     </div>
                     <div className="glass-card" style={{
@@ -223,7 +223,7 @@ export function ExecutiveChat() {
         </div>
 
         {/* Input bar */}
-        <form onSubmit={handleSendMessage} style={{ display: "flex", gap: "10px", padding: "16px 20px", borderTop: "1px solid var(--border-color)", background: "rgba(0,0,0,0.2)" }}>
+        <form onSubmit={handleSendMessage} style={{ display: "flex", gap: "10px", padding: "16px 20px", borderTop: "1px solid var(--border-color)", background: "var(--bg-card)" }}>
           <input
             type="text"
             placeholder={selectedProjectId ? `Post to ${activeChannel}...` : "Select a target objective first"}
@@ -231,8 +231,8 @@ export function ExecutiveChat() {
             onChange={(e) => setInputText(e.target.value)}
             disabled={!selectedProjectId || sending}
             style={{
-              flex: 1, padding: "10px 16px", background: "rgba(0,0,0,0.3)", border: "1px solid var(--border-color)",
-              borderRadius: "6px", color: "white", fontSize: "13px", outline: "none"
+              flex: 1, padding: "10px 16px", background: "var(--bg-input)", border: "1px solid var(--border-color)",
+              borderRadius: "6px", color: "var(--text-primary)", fontSize: "13px", outline: "none"
             }}
           />
           <button

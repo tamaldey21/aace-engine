@@ -165,10 +165,10 @@ export function OpsPortal() {
               onChange={(e) => setSelectedProjectId(e.target.value)}
               style={{
                 padding: "8px 12px",
-                background: "rgba(0,0,0,0.5)",
+                background: "var(--bg-input)",
                 border: "1px solid var(--border-color)",
                 borderRadius: "6px",
-                color: "white",
+                color: "var(--text-primary)",
                 outline: "none",
                 minWidth: "200px"
               }}
@@ -202,10 +202,10 @@ export function OpsPortal() {
             style={{
               flex: 1,
               padding: "10px 16px",
-              background: "rgba(0,0,0,0.3)",
+              background: "var(--bg-input)",
               border: "1px solid var(--border-color)",
               borderRadius: "6px",
-              color: "white",
+              color: "var(--text-primary)",
               fontSize: "13px",
               outline: "none"
             }}
@@ -331,7 +331,7 @@ export function OpsPortal() {
                   >
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px" }}>
                       <div>
-                        <span style={{ fontSize: "13px", fontWeight: "bold", color: "white" }}>{task.title}</span>
+                        <span style={{ fontSize: "13px", fontWeight: "bold", color: "var(--text-primary)" }}>{task.title}</span>
                         <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "2px" }}>
                           Assigned: <span style={{ color: "var(--accent-cyan)" }}>{task.department}</span> &bull; Complexity: {task.complexity}
                         </div>
@@ -409,7 +409,7 @@ export function OpsPortal() {
             <div
               style={{
                 flex: 1,
-                background: "rgba(0,0,0,0.5)",
+                background: "var(--bg-input)",
                 border: "1px solid var(--border-color)",
                 borderRadius: "6px",
                 padding: "16px",

@@ -97,7 +97,7 @@ export function DeptDashboard({ department }) {
 
         <div style={{ display: "flex", flexDirection: "column", gap: "4px", textAlign: "right", borderLeft: "1px solid var(--border-color)", paddingLeft: "20px" }}>
           <span style={{ fontSize: "10px", color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}>DEPARTMENT PARAMETERS</span>
-          <span style={{ fontSize: "12px", fontWeight: "bold", color: "white" }}>{department.meta}</span>
+          <span style={{ fontSize: "12px", fontWeight: "bold", color: "var(--text-primary)" }}>{department.meta}</span>
           <span style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "2px" }}>Priority Allocation: High</span>
         </div>
       </div>
@@ -133,7 +133,7 @@ export function DeptDashboard({ department }) {
               tasks.map(t => (
                 <div key={t._id} className="deliverable-card" style={{ padding: "12px 16px", background: "rgba(255,255,255,0.01)" }}>
                   <div>
-                    <span style={{ fontSize: "13px", fontWeight: "bold", color: "white" }}>{t.title}</span>
+                    <span style={{ fontSize: "13px", fontWeight: "bold", color: "var(--text-primary)" }}>{t.title}</span>
                     <p style={{ fontSize: "11px", color: "var(--text-secondary)", margin: "4px 0 0" }}>{t.description}</p>
                   </div>
                   <span style={{
@@ -154,7 +154,7 @@ export function DeptDashboard({ department }) {
       <div className="glass-card" style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
         <h3 className="plan-section-title"><MessageSquare size={16} /> Channel Communication Feed</h3>
         <div style={{
-          background: "rgba(0,0,0,0.4)", border: "1px solid var(--border-color)", borderRadius: "6px",
+          background: "var(--bg-input)", border: "1px solid var(--border-color)", borderRadius: "6px",
           padding: "16px", minHeight: "180px", display: "flex", flexDirection: "column", gap: "12px",
           fontFamily: "var(--font-mono)", fontSize: "11px"
         }}>
@@ -162,7 +162,7 @@ export function DeptDashboard({ department }) {
             <div style={{ color: "var(--text-muted)" }}>// Connecting activity stream... No channel traffic.</div>
           ) : (
             messages.map(m => (
-              <div key={m._id} style={{ display: "flex", flexDirection: "column", gap: "2px", borderBottom: "1px dashed rgba(255,255,255,0.03)", paddingBottom: "6px" }}>
+              <div key={m._id} style={{ display: "flex", flexDirection: "column", gap: "2px", borderBottom: "1px dashed var(--border-color)", paddingBottom: "6px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", color: department.color }}>
                   <span>[{m.sender}]</span>
                   <span style={{ color: "var(--text-muted)" }}>{new Date(m.createdAt).toLocaleTimeString()}</span>
