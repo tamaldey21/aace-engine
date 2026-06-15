@@ -16,6 +16,7 @@ import MarketingPortal from "./components/MarketingPortal";
 import LegalPortal from "./components/LegalPortal";
 import DeptDashboard from "./components/DeptDashboard";
 import ExecutiveChat from "./components/ExecutiveChat";
+import AntigravityChat from "./components/AntigravityChat";
 
 const INITIAL_MEMORIES = [
   "Engineering stack parameters are bound to Vite + React + Node.js.",
@@ -406,6 +407,14 @@ export function App() {
                   <span>Executive Chat</span>
                 </div>
 
+                <div 
+                  className={`nav-item ${activeTab === "antigravity" ? "active" : ""}`}
+                  onClick={() => setActiveTab("antigravity")}
+                >
+                  <Terminal size={15} />
+                  <span>Antigravity AI</span>
+                </div>
+
                 <div style={{ marginTop: "12px", borderTop: "1px solid var(--border-color)", paddingTop: "12px", paddingLeft: "8px", paddingRight: "8px" }}>
                   <label style={{ fontSize: "9px", color: "var(--text-muted)", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.5px", display: "block", marginBottom: "6px" }}>
                     AI Departments
@@ -546,6 +555,7 @@ export function App() {
               {userRole === "ceo" && activeTab === "memory" && "Global Context Ledger Repository"}
               {userRole === "ceo" && activeTab === "engines" && "19-Engine Diagnostic Grid"}
               {userRole === "ceo" && activeTab === "executive_chat" && "Executive Messaging Board"}
+              {userRole === "ceo" && activeTab === "antigravity" && "Antigravity AI Coding Assistant"}
               {userRole === "ceo" && activeTab === "dept_dashboard" && (selectedDept ? `${selectedDept.name} Workspace` : "AI Department Dashboard")}
               
               {userRole === "hr" && `HR Operations Bot Workspace (${getRoleDisplayName()})`}
@@ -636,6 +646,9 @@ export function App() {
               )}
               {activeTab === "executive_chat" && (
                 <ExecutiveChat />
+              )}
+              {activeTab === "antigravity" && (
+                <AntigravityChat />
               )}
               {activeTab === "dept_dashboard" && selectedDept && (
                 <DeptDashboard department={selectedDept} />

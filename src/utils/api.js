@@ -54,6 +54,9 @@ function initLocalStorageDb() {
   if (!localStorage.getItem("aace_messages")) {
     localStorage.setItem("aace_messages", JSON.stringify([]));
   }
+  if (!localStorage.getItem("aace_staged_files")) {
+    localStorage.setItem("aace_staged_files", JSON.stringify([]));
+  }
   if (!localStorage.getItem("aace_api_url") || localStorage.getItem("aace_api_url") === "http://localhost:3001") {
     localStorage.setItem("aace_api_url", "https://aace-engine.onrender.com");
   }
@@ -303,6 +306,49 @@ export const AaceApi = {
         offline: true,
         downloadTriggered: true
       };
+    }
+
+    if (pathname === "/api/antigravity/chat" && method === "POST") {
+      const { message } = body;
+      const lower = message.toLowerCase();
+      let text = "I am currently running in offline local mode. I am ready to assist you with coding tasks.";
+      let stagedFiles = [];
+      
+      if (lower.includes("calc") || lower.includes("calculator")) {
+        text = "I have staged a simple calculator page for you: [Staged File: calculator.html]";
+        stagedFiles = [{ filename: "calculator.html" }];
+        const staged = JSON.parse(localStorage.getItem("aace_staged_files") || "[]");
+        if (!staged.some(f => f.name === "calculator.html")) {
+          staged.push({ name: "calculator.html", content: `<!DOCTYPE html>
+<html>
+<head><title>Offline Calc</title></head>
+<body><h1>Mock Calculator</h1></body>
+</html>` });
+          localStorage.setItem("aace_staged_files", JSON.stringify(staged));
+        }
+      } else if (lower.includes("todo") || lower.includes("task") || lower.includes("list")) {
+        text = "I have staged a simple to-do list application: [Staged File: todolist.html]";
+        stagedFiles = [{ filename: "todolist.html" }];
+        const staged = JSON.parse(localStorage.getItem("aace_staged_files") || "[]");
+        if (!staged.some(f => f.name === "todolist.html")) {
+          staged.push({ name: "todolist.html", content: `<!DOCTYPE html>
+<html>
+<head><title>Offline Tasks</title></head>
+<body><h1>Mock Todo List</h1></body>
+</html>` });
+          localStorage.setItem("aace_staged_files", JSON.stringify(staged));
+        }
+      }
+      return { text, stagedFiles };
+    }
+
+    if (pathname === "/api/antigravity/sandbox" && method === "GET") {
+      return JSON.parse(localStorage.getItem("aace_staged_files") || "[]");
+    }
+
+    if (pathname === "/api/antigravity/merge" && method === "POST") {
+      const { filename } = body;
+      return { success: true, url: `http://localhost:5173/${filename}`, filename };
     }
 
     if (pathname === "/api/projects/create-autonomous" && method === "POST") {
@@ -736,5 +782,25 @@ export const AaceApi = {
   ${appContent}
 </body>
 </html>`;
+  },
+
+  async antigravityChat(message, history = []) {
+    return this.request("/api/antigravity/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message, history })
+    });
+  },
+
+  async getSandboxFiles() {
+    return this.request("/api/antigravity/sandbox");
+  },
+
+  async mergeSandboxFile(filename) {
+    return this.request("/api/antigravity/merge", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ filename })
+    });
   }
 };

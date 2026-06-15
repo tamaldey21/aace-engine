@@ -5,6 +5,7 @@ import path from "path";
 import { dbReady } from "./db.js"; // Initialize connection
 import { Candidate, ChatLog, Memory, Employee, Attendance, Project, Task, Message, Metric } from "./db.js";
 import { compileHTML } from "./compiler.js";
+import { callCodingAssistant } from "./utils/llm.js";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -748,6 +749,10 @@ app.post("/api/projects/simulate-chat", async (req, res) => {
 You are working on the project "${project.name}".
 Your current task is: "${activeTask.title}" (${activeTask.description}).
 You are updating the status of this task from "${prevStatus}" to "${nextStatus}".
+If your task involves implementing code, UI design layouts, schemas, or configurations, you must write the file content wrapped inside:
+<create_file path="FILENAME">
+FILE_CONTENT
+</create_file>
 Write a concise, professional message (under 3 lines) to post in the channel explaining your progress, next steps, or that you've finished the task.
 Output ONLY the raw message content. Do not include quotes or emojis.`;
 
@@ -755,6 +760,27 @@ Output ONLY the raw message content. Do not include quotes or emojis.`;
     const aiResponse = await callAI(sysPrompt, `Task: ${activeTask.title}, moving from ${prevStatus} to ${nextStatus}.`);
     if (aiResponse) {
       dialogueText = aiResponse.trim();
+      
+      // Parse any created files in simulation
+      const sandboxDir = path.join(process.cwd(), "../sandbox");
+      if (!fs.existsSync(sandboxDir)) {
+        fs.mkdirSync(sandboxDir, { recursive: true });
+      }
+      
+      const fileRegex = /<create_file\s+path=["']([^"']+)["']\s*>([\s\S]*?)<\/create_file>/g;
+      let match;
+      fileRegex.lastIndex = 0;
+      while ((match = fileRegex.exec(aiResponse)) !== null) {
+        const filepath = match[1].replace(/[^a-zA-Z0-9_.-]/g, "");
+        const content = match[2].trim();
+        if (filepath) {
+          fs.writeFileSync(path.join(sandboxDir, filepath), content, "utf8");
+        }
+      }
+      
+      dialogueText = dialogueText.replace(fileRegex, (m, filepath) => {
+        return `[Staged File: ${filepath}]`;
+      });
     }
 
     if (!dialogueText) {
@@ -785,6 +811,100 @@ Output ONLY the raw message content. Do not include quotes or emojis.`;
     });
 
     res.json({ message: savedMsg, project, task: updatedTask });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// API: Antigravity direct chat endpoint
+app.post("/api/antigravity/chat", async (req, res) => {
+  try {
+    const { message, history } = req.body;
+    if (!message) {
+      return res.status(400).json({ error: "message is required" });
+    }
+
+    const aiResponse = await callCodingAssistant(message, history);
+    
+    // Parse files staged inside <create_file path="...">...</create_file>
+    const sandboxDir = path.join(process.cwd(), "../sandbox");
+    if (!fs.existsSync(sandboxDir)) {
+      fs.mkdirSync(sandboxDir, { recursive: true });
+    }
+
+    const fileRegex = /<create_file\s+path=["']([^"']+)["']\s*>([\s\S]*?)<\/create_file>/g;
+    let match;
+    const stagedFiles = [];
+
+    // Reset regex index
+    fileRegex.lastIndex = 0;
+    while ((match = fileRegex.exec(aiResponse)) !== null) {
+      const filepath = match[1].replace(/[^a-zA-Z0-9_.-]/g, ""); // sanitize
+      const content = match[2].trim();
+      
+      if (filepath) {
+        fs.writeFileSync(path.join(sandboxDir, filepath), content, "utf8");
+        stagedFiles.push({ filename: filepath });
+      }
+    }
+
+    // Clean XML blocks from the text sent back to chat
+    const cleanedText = aiResponse.replace(fileRegex, (m, filepath) => {
+      return `[Staged File: ${filepath}]`;
+    });
+
+    res.json({ text: cleanedText, stagedFiles });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// API: Get sandbox files
+app.get("/api/antigravity/sandbox", async (req, res) => {
+  try {
+    const sandboxDir = path.join(process.cwd(), "../sandbox");
+    if (!fs.existsSync(sandboxDir)) {
+      return res.json([]);
+    }
+
+    const files = fs.readdirSync(sandboxDir);
+    const result = [];
+
+    for (const file of files) {
+      const filePath = path.join(sandboxDir, file);
+      const stat = fs.statSync(filePath);
+      if (stat.isFile()) {
+        const content = fs.readFileSync(filePath, "utf8");
+        result.push({ name: file, content });
+      }
+    }
+
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// API: Merge sandbox file to production public/ folder
+app.post("/api/antigravity/merge", async (req, res) => {
+  try {
+    const { filename } = req.body;
+    if (!filename) {
+      return res.status(400).json({ error: "filename is required" });
+    }
+
+    const cleanName = filename.replace(/[^a-zA-Z0-9_.-]/g, "");
+    const sandboxPath = path.join(process.cwd(), "../sandbox", cleanName);
+    const productionPath = path.join(process.cwd(), "../public", cleanName);
+
+    if (!fs.existsSync(sandboxPath)) {
+      return res.status(404).json({ error: `File "${cleanName}" not found in sandbox.` });
+    }
+
+    const content = fs.readFileSync(sandboxPath, "utf8");
+    fs.writeFileSync(productionPath, content, "utf8");
+
+    res.json({ success: true, url: `http://localhost:5173/${cleanName}`, filename: cleanName });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
