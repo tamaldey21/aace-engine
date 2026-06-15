@@ -150,6 +150,7 @@ const DEFAULT_EMPLOYEES = [
   { name: "kevin",      role: "Lead QA Tester",           dept: "QA (AI Agent)",              empId: "EMP-2026-0008", type: "Autonomous", passcode: "kevin" },
   { name: "rachel",     role: "Lead Marketing Manager",   dept: "Marketing (AI Agent)",       empId: "EMP-2026-0009", type: "Autonomous", passcode: "rachel" },
   { name: "harvey",     role: "Lead Legal Counsel",       dept: "Legal (AI Agent)",           empId: "EMP-2026-0010", type: "Autonomous", passcode: "harvey" },
+  { name: "antigravity", role: "AI Coding Assistant Bot",  dept: "Antigravity AI (AI Agent)",   empId: "EMP-2026-0011", type: "Autonomous", passcode: "antigravity" }
 ];
 
 // On startup: seed employees if any have missing empId/passcode or CEO has the default passcode
@@ -486,7 +487,7 @@ async function callAI(systemPrompt, userPrompt) {
 
 function getChannelForDept(dept) {
   const clean = dept.toLowerCase();
-  if (clean.includes("frontend") || clean.includes("backend") || clean.includes("database") || clean.includes("engineering") || clean.includes("devops") || clean.includes("cybersecurity") || clean.includes("ml")) {
+  if (clean.includes("frontend") || clean.includes("backend") || clean.includes("database") || clean.includes("engineering") || clean.includes("devops") || clean.includes("cybersecurity") || clean.includes("ml") || clean.includes("antigravity")) {
     return "#engineering";
   }
   if (clean.includes("product") || clean.includes("ux") || clean.includes("design") || clean.includes("qa")) {
@@ -516,7 +517,7 @@ app.post("/api/projects/create-autonomous", async (req, res) => {
     const project = await newProject.save();
 
     const systemPrompt = `You are an AI Project Manager. Decompose the user's high-level goal into a list of 6 to 10 structured tasks assigned to different departments.
-Available departments: CEO Office, COO Operations, CTO Engineering, Product Management, UI/UX Design, Frontend Development, Backend Development, Database Engineering, DevOps & Infrastructure, AI/ML Department, Quality Assurance, Cybersecurity, Finance, HR, Marketing, Sales, Legal & Compliance, Customer Support, Research & Strategy.
+Available departments: CEO Office, COO Operations, CTO Engineering, Product Management, UI/UX Design, Frontend Development, Backend Development, Database Engineering, DevOps & Infrastructure, AI/ML Department, Quality Assurance, Cybersecurity, Finance, HR, Marketing, Sales, Legal & Compliance, Customer Support, Research & Strategy, Antigravity AI.
 You must output ONLY a raw JSON array of task objects (no markdown fences, no explanations).
 Each task object must have:
 - "title": concise task name

@@ -173,11 +173,25 @@ export const ENGINES_INFO = [
     color: "#6366f1",
     gradientId: "grad-strategy_bot",
     meta: "Model: ScholarGPT-Pro | Source: arXiv / OLS"
+  },
+  {
+    id: "antigravity_bot",
+    name: "Antigravity AI",
+    role: "Advanced AI coding assistant, direct codebase refactoring, sandbox compiler integrations, and dynamic staging deployment.",
+    icon: Code,
+    color: "var(--accent-cyan)",
+    gradientId: "grad-antigravity_bot",
+    meta: "Model: Antigravity-v2 | Engine: DeepMind Agentic Coding"
   }
 ];
 
 const getConsultPresetStarters = (botId) => {
   switch (botId) {
+    case "antigravity_bot":
+      return [
+        { label: "Refactor React component props", query: "Optimize a React component to use typescript types and dynamic styles" },
+        { label: "Draft a clean Express backend router", query: "Create an Express backend router that supports CRUD operations for tasks" }
+      ];
     case "ceo_bot":
       return [
         { label: "Analyze seed equity option pool splits", query: "Optimize our standard co-founder and early hire equity vesting models" },

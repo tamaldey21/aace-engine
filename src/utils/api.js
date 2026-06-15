@@ -11,6 +11,7 @@ const DEFAULT_EMPLOYEES = [
   { name: "kevin",      role: "Lead QA Tester",           dept: "QA (AI Agent)",              empId: "EMP-2026-0008", type: "Autonomous", passcode: "kevin" },
   { name: "rachel",     role: "Lead Marketing Manager",   dept: "Marketing (AI Agent)",       empId: "EMP-2026-0009", type: "Autonomous", passcode: "rachel" },
   { name: "harvey",     role: "Lead Legal Counsel",       dept: "Legal (AI Agent)",           empId: "EMP-2026-0010", type: "Autonomous", passcode: "harvey" },
+  { name: "antigravity", role: "AI Coding Assistant Bot",  dept: "Antigravity AI (AI Agent)",   empId: "EMP-2026-0011", type: "Autonomous", passcode: "antigravity" },
   { name: "Ayush Dey",  role: "frontend developer",       dept: "Engineering (AI Agent)",     empId: "EMP-2026-3254", type: "Full-Time",  passcode: "bb328RTS" },
   { name: "Ankit Roy",  role: "Devop",                    dept: "Executive (Human)",          empId: "EMP-2026-2596", type: "Full-Time",  passcode: "8ballpool" }
 ];
