@@ -2,11 +2,11 @@ import React, { useState, useEffect, useRef } from "react";
 import { Send, User, Bot, Sparkles, Terminal, FileCode, CheckCircle, AlertCircle, Play } from "lucide-react";
 import { AaceApi } from "../utils/api";
 
-export default function AntigravityChat() {
+export default function MainEngineerChat() {
   const [messages, setMessages] = useState([
     {
       sender: "bot",
-      text: "Secure link established: Antigravity AI Engine online.\nWelcome, Founder. I am Antigravity, your advanced AI coding assistant. I can write files, construct UI views, and stage layouts for you. Any files I generate will appear in the Sandbox Staging area on the right. You can review and merge them into production at your command.\nHow can I assist you in coding today?",
+      text: "Secure link established: Main Engineer AI Engine online.\nWelcome, Founder. I am Main Engineer AI, your advanced AI coding assistant. I can write files, construct UI views, and stage layouts for you. Any files I generate will appear in the Sandbox Staging area on the right. You can review and merge them into production at your command.\nHow can I assist you in coding today?",
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
@@ -71,7 +71,7 @@ export default function AntigravityChat() {
     }));
 
     try {
-      const res = await AaceApi.antigravityChat(userMsg, history);
+      const res = await AaceApi.mainEngineerChat(userMsg, history);
       setIsTyping(false);
       
       const botTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -112,10 +112,10 @@ export default function AntigravityChat() {
       {/* Header Panel */}
       <div className="glass-card" style={{ padding: "16px 20px" }}>
         <h2 className="plan-section-title" style={{ borderLeftColor: "var(--accent-cyan)", margin: 0, paddingLeft: "10px", display: "flex", alignItems: "center", gap: "8px" }}>
-          <Terminal size={18} style={{ color: "var(--accent-cyan)" }} /> Antigravity AI Engineering Assistant
+          <Terminal size={18} style={{ color: "var(--accent-cyan)" }} /> Main Engineer AI Engineering Assistant
         </h2>
         <p style={{ fontSize: "12px", color: "var(--text-secondary)", marginTop: "4px", marginContent: 0 }}>
-          Interactive development terminal. Ask Antigravity to build templates, mockups, or write customized scripting files. Inspect drafts in sandbox staging, and deploy them directly to public folder.
+          Interactive development terminal. Ask Main Engineer AI to build templates, mockups, or write customized scripting files. Inspect drafts in sandbox staging, and deploy them directly to public folder.
         </p>
       </div>
 
@@ -180,7 +180,7 @@ export default function AntigravityChat() {
                   borderRadius: "8px", padding: "10px 14px", display: "flex", alignItems: "center", gap: "4px"
                 }}>
                   <span className="dot pulse" style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--accent-cyan)" }}></span>
-                  <span style={{ fontSize: "12px", color: "var(--text-secondary)" }}>Antigravity compiles...</span>
+                  <span style={{ fontSize: "12px", color: "var(--text-secondary)" }}>Main Engineer AI compiles...</span>
                 </div>
               </div>
             )}

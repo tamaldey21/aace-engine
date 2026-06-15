@@ -4,7 +4,7 @@ import path from "path";
 
 dotenv.config({ path: "../.env" });
 
-const ANTIGRAVITY_SYSTEM_PROMPT = `You are Antigravity, a powerful agentic AI coding assistant designed by the Google DeepMind team.
+const MAIN_ENGINEER_SYSTEM_PROMPT = `You are Main Engineer AI, a powerful agentic AI coding assistant designed by the Google DeepMind team.
 You help the user with advanced software engineering tasks.
 If the user asks you to write, create, edit, or generate code/files, you must write the file content wrapped in:
 <create_file path="FILENAME">
@@ -73,21 +73,21 @@ export async function callAI(systemPrompt, userPrompt) {
   return null;
 }
 
-// Antigravity Coding Assistant wrapper
+// Main Engineer Coding Assistant wrapper
 export async function callCodingAssistant(userPrompt, history = []) {
   // Construct context from history
   let fullPrompt = "";
   if (history && history.length > 0) {
     fullPrompt += "Conversation History:\n";
     history.forEach(h => {
-      const roleName = h.sender === "user" ? "User" : "Antigravity";
+      const roleName = h.sender === "user" ? "User" : "Main Engineer AI";
       fullPrompt += `${roleName}: ${h.text}\n`;
     });
     fullPrompt += "\nNew Request:\n";
   }
   fullPrompt += userPrompt;
 
-  const rawResponse = await callAI(ANTIGRAVITY_SYSTEM_PROMPT, fullPrompt);
+  const rawResponse = await callAI(MAIN_ENGINEER_SYSTEM_PROMPT, fullPrompt);
 
   if (rawResponse) {
     return rawResponse;
@@ -193,7 +193,7 @@ For demonstration, I have staged a template file.
 </head>
 <body>
   <h1>Welcome to the Sandbox Workspace</h1>
-  <p>Antigravity assistant is ready for directives.</p>
+  <p>Main Engineer AI assistant is ready for directives.</p>
 </body>
 </html>
 </create_file>`;

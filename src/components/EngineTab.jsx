@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Cpu, Briefcase, Server, Code, Database, Play, Target, Users, Layers, ShieldCheck, Activity, X, Send, MessageSquare, Brain, Check, Bot } from "lucide-react";
+import { Cpu, Briefcase, Server, Code, Database, Play, Target, Users, Layers, ShieldCheck, Activity, X, Send, MessageSquare, Brain, Check, Bot, User, Calendar, Clock, Lock, CheckCircle2, ShieldAlert } from "lucide-react";
 import { AaceApi } from "../utils/api";
 
 export const ENGINES_INFO = [
@@ -175,19 +175,19 @@ export const ENGINES_INFO = [
     meta: "Model: ScholarGPT-Pro | Source: arXiv / OLS"
   },
   {
-    id: "antigravity_bot",
-    name: "Antigravity AI",
+    id: "main_engineer_bot",
+    name: "Main Engineer AI",
     role: "Advanced AI coding assistant, direct codebase refactoring, sandbox compiler integrations, and dynamic staging deployment.",
     icon: Code,
     color: "var(--accent-cyan)",
-    gradientId: "grad-antigravity_bot",
-    meta: "Model: Antigravity-v2 | Engine: DeepMind Agentic Coding"
+    gradientId: "grad-main_engineer_bot",
+    meta: "Model: Main-Engineer-v1 | Engine: DeepMind Agentic Coding"
   }
 ];
 
 const getConsultPresetStarters = (botId) => {
   switch (botId) {
-    case "antigravity_bot":
+    case "main_engineer_bot":
       return [
         { label: "Refactor React component props", query: "Optimize a React component to use typescript types and dynamic styles" },
         { label: "Draft a clean Express backend router", query: "Create an Express backend router that supports CRUD operations for tasks" }
@@ -477,246 +477,193 @@ const extractMemoryInsight = (text) => {
   return match ? match[1] : text.split('\n')[0];
 };
 
-export function EngineTab({ memories = [], onAddMemory }) {
-  const [engineMetrics, setEngineMetrics] = useState({});
-  const [activeConsultBot, setActiveConsultBot] = useState(null);
-  const [chatLog, setChatLog] = useState([]);
-  const [taskInput, setTaskInput] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
-  const [committedMsgs, setCommittedMsgs] = useState({});
-  const [deployingId, setDeployingId] = useState(null);
+export function EngineTab() {
+  const [employees, setEmployees] = useState([]);
+  const [attendance, setAttendance] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedEmp, setSelectedEmp] = useState(null);
+  const [workloads, setWorkloads] = useState({});
 
   useEffect(() => {
-    const initial = {};
-    ENGINES_INFO.forEach(eng => {
-      initial[eng.id] = Array.from({ length: 15 }, () => Math.floor(Math.random() * 30) + 15);
-    });
-    setEngineMetrics(initial);
+    Promise.all([
+      AaceApi.request("/api/employees"),
+      AaceApi.request("/api/attendance").catch(() => [])
+    ])
+      .then(([empData, attData]) => {
+        setEmployees(empData || []);
+        setAttendance(attData || []);
+        
+        const humans = (empData || []).filter(e => e.type !== "Autonomous");
+        const initialWorkloads = {};
+        humans.forEach(h => {
+          initialWorkloads[h.empId] = Array.from({ length: 15 }, () => Math.floor(Math.random() * 4) + 5);
+        });
+        setWorkloads(initialWorkloads);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Failed to load employee diagnostics:", err);
+        setLoading(false);
+      });
+  }, []);
 
+  useEffect(() => {
     const interval = setInterval(() => {
-      setEngineMetrics(prev => {
+      setWorkloads(prev => {
         const updated = { ...prev };
-        Object.keys(updated).forEach(id => {
-          const points = [...updated[id]];
-          points.shift();
-          points.push(Math.floor(Math.random() * 32) + 14);
-          updated[id] = points;
+        Object.keys(updated).forEach(empId => {
+          if (updated[empId]) {
+            const points = [...updated[empId]];
+            points.shift();
+            points.push(Math.floor(Math.random() * 5) + 5);
+            updated[empId] = points;
+          }
         });
         return updated;
       });
-    }, 1000);
-
+    }, 2000);
     return () => clearInterval(interval);
-  }, []);
+  }, [employees]);
+
+  const humans = employees.filter(e => e.type !== "Autonomous");
+
+  const getEmployeeStatus = (empId) => {
+    const today = new Date().toDateString();
+    const activeLog = attendance.find(log => 
+      log.empId === empId && 
+      new Date(log.loginTime || log.createdAt || Date.now()).toDateString() === today && 
+      (log.status === "Present" || log.status === "Checked In")
+    );
+    return activeLog ? "ON DUTY" : "OFFLINE";
+  };
+
+  const getEmployeeLogs = (empId) => {
+    return attendance.filter(log => log.empId === empId).sort((a, b) => new Date(b.loginTime || b.createdAt) - new Date(a.loginTime || a.createdAt));
+  };
 
   const generatePath = (points) => {
     if (!points || points.length === 0) return "";
     const stepX = 300 / (points.length - 1);
-    let path = `M 0 ${60 - points[0]}`;
+    let path = `M 0 ${60 - points[0] * 5}`;
     for (let i = 1; i < points.length; i++) {
       const x = i * stepX;
-      const y = 60 - points[i];
+      const y = 60 - points[i] * 5;
       path += ` L ${x} ${y}`;
     }
     return path;
   };
 
-  const generateAreaPath = (points) => {
+  const generateAreaPath = (points, gradientId) => {
     if (!points || points.length === 0) return "";
     const linePath = generatePath(points);
     return `${linePath} L 300 60 L 0 60 Z`;
   };
 
-  const handleOpenConsult = (eng) => {
-    setActiveConsultBot(eng);
-    setChatLog([
-      {
-        id: "greeting-" + Date.now(),
-        sender: "bot",
-        text: `[${eng.name}] Active. I am tuned to help you execute tasks regarding: ${eng.role}\n\nSelect a preset starter scenario or describe a task below, and I will execute it.`,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      }
-    ]);
-    setTaskInput("");
-    setIsTyping(false);
+  const getRoleIcon = (role) => {
+    const r = role.toLowerCase();
+    if (r.includes("ceo") || r.includes("founder")) return User;
+    if (r.includes("dev") || r.includes("code") || r.includes("software")) return Code;
+    if (r.includes("design") || r.includes("ux") || r.includes("ui")) return Layers;
+    if (r.includes("qa") || r.includes("test")) return CheckCircle2;
+    if (r.includes("coo") || r.includes("ops") || r.includes("operations")) return Briefcase;
+    return Users;
   };
 
-  const handleSendTask = (textToSend) => {
-    const query = textToSend || taskInput;
-    if (!query.trim() || isTyping) return;
-
-    const userMsg = {
-      id: "user-" + Date.now(),
-      sender: "user",
-      text: query,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    };
-
-    setChatLog(prev => [...prev, userMsg]);
-    setTaskInput("");
-    setIsTyping(true);
-
-    setTimeout(() => {
-      setIsTyping(false);
-      const outputText = executeBotTask(activeConsultBot.id, query);
-      const botMsg = {
-        id: "bot-" + Date.now(),
-        sender: "bot",
-        text: outputText,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        isCommitable: outputText.includes("Memory Insight:"),
-        insightText: extractMemoryInsight(outputText),
-        isDeployable: activeConsultBot.id === "frontend_bot",
-        deployQuery: query
-      };
-      setChatLog(prev => [...prev, botMsg]);
-    }, 1200);
+  const getRoleColor = (role) => {
+    const r = role.toLowerCase();
+    if (r.includes("ceo") || r.includes("founder")) return "var(--accent-cyan)";
+    if (r.includes("dev") || r.includes("code")) return "var(--accent-blue)";
+    if (r.includes("coo") || r.includes("ops")) return "var(--accent-yellow)";
+    return "var(--accent-purple)";
   };
 
-  const handleCommitInsight = (msgId, insightText) => {
-    if (onAddMemory) {
-      onAddMemory(insightText);
-      setCommittedMsgs(prev => ({ ...prev, [msgId]: true }));
-    }
-  };
-
-  const handleDeployApp = (msgId, queryText) => {
-    setDeployingId(msgId);
-    const cleanTitle = queryText.replace(/^(create|make|build|generate|design|write)\s+/i, "");
-    let filename = cleanTitle.toLowerCase().replace(/[^a-z0-9]/g, "-") || "custom-app";
-    if (!filename.endsWith(".html")) {
-      filename += ".html";
-    }
-
-    const ceoKey = localStorage.getItem("aace_ceo_key") || "";
-    const cooKey = localStorage.getItem("aace_coo_key") || "";
-    const engineerKey = localStorage.getItem("aace_engineer_key") || "";
-    const hrKey = localStorage.getItem("aace_hr_key") || "";
-    const productKey = localStorage.getItem("aace_product_key") || "";
-    const uiuxKey = localStorage.getItem("aace_uiux_key") || "";
-    const qaKey = localStorage.getItem("aace_qa_key") || "";
-    const marketingKey = localStorage.getItem("aace_marketing_key") || "";
-    const legalKey = localStorage.getItem("aace_legal_key") || "";
-    const geminiKey = localStorage.getItem("aace_gemini_key") || "";
-
-    AaceApi.request("/api/deploy-file", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        filename,
-        directive: queryText,
-        keys: {
-          ceoKey,
-          cooKey,
-          engineerKey,
-          hrKey,
-          productKey,
-          uiuxKey,
-          qaKey,
-          marketingKey,
-          legalKey,
-          geminiKey
-        }
-      })
-    })
-      .then(data => {
-        setDeployingId(null);
-        if (data.success) {
-          if (data.offline) {
-            alert(`[Offline Local Mode] API Server down. File "${data.filename}" compiled client-side and downloaded directly to your local computer!`);
-          } else {
-            if (confirm(`[DevOps & Deploy Bot] File "${data.filename}" has been successfully built and deployed to the workspace public directory!\n\nWould you like to open it now?`)) {
-              window.open(data.url, "_blank");
-            }
-          }
-        } else {
-          alert(`Deploy failed: ${data.error}`);
-        }
-      })
-      .catch(err => {
-        setDeployingId(null);
-        console.error("Deploy error:", err);
-        alert(`Deploy error: Could not contact build server.`);
-      });
-  };
+  if (loading) {
+    return (
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "300px" }}>
+        <p style={{ color: "var(--text-secondary)" }}>Loading employee directory...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="engine-tab-container" style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
       
       <div className="glass-card">
         <h2 className="plan-section-title" style={{ borderLeftColor: "var(--accent-cyan)", margin: 0, paddingLeft: "10px" }}>
-          <Activity size={18} style={{ color: "var(--accent-cyan)" }} /> Neural Engine Monitoring Room (10 Active AI Models)
+          <Users size={18} style={{ color: "var(--accent-cyan)" }} /> Human Roster & Diagnostics Matrix
         </h2>
         <p style={{ fontSize: "13px", color: "var(--text-secondary)", marginTop: "4px" }}>
-          Diagnostic view of AACE's exactly 10 specialized agent bots. Click any engine card to consult the bot, assign tasks, and write results directly to the Memory Vault.
+          Operational status, workload logs, and security parameters of AACE's human staff. Click any card to inspect dossier profiles and audit clock-in records.
         </p>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "20px" }}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "20px" }}>
-          {ENGINES_INFO.map(eng => {
-            const IconComponent = eng.icon;
-            const wavePoints = engineMetrics[eng.id] || [];
-            const currentLoad = wavePoints[wavePoints.length - 1] || 0;
-            const status = currentLoad > 30 ? "PROCESSING" : "IDLE";
-            
+          {humans.map(emp => {
+            const IconComponent = getRoleIcon(emp.role);
+            const empColor = getRoleColor(emp.role);
+            const status = getEmployeeStatus(emp.empId);
+            const wavePoints = workloads[emp.empId] || [];
+            const currentHours = wavePoints[wavePoints.length - 1] || 0;
+            const gradientId = `grad-${emp.empId}`;
+
             return (
               <div 
-                key={eng.id} 
+                key={emp.empId} 
                 className="glass-card engine-card"
-                onClick={() => handleOpenConsult(eng)}
+                onClick={() => setSelectedEmp(emp)}
                 style={{ 
                   cursor: "pointer", 
-                  transition: "all 0.2s ease",
-                  hoverBorderColor: "var(--accent-cyan)"
+                  transition: "all 0.2s ease"
                 }}
               >
                 <div className="engine-header-row">
                   <div className="engine-identity">
                     <div className="engine-avatar" style={{ 
                       background: "rgba(0, 0, 0, 0.04)",
-                      color: eng.color
+                      color: empColor
                     }}>
                       <IconComponent size={18} />
                     </div>
                     <div className="engine-details-meta">
-                      <h4 style={{ color: "var(--text-main)", margin: 0, fontSize: "14px", fontWeight: "600" }}>{eng.name}</h4>
-                      <span>{eng.meta}</span>
+                      <h4 style={{ color: "var(--text-main)", margin: 0, fontSize: "14px", fontWeight: "600" }}>{emp.name}</h4>
+                      <span style={{ fontSize: "11px", color: "var(--text-secondary)" }}>{emp.empId} &bull; {emp.type}</span>
                     </div>
                   </div>
-                  <span className={`engine-badge-status ${status === "PROCESSING" ? "active" : ""}`} style={{
-                    borderColor: status === "PROCESSING" ? eng.color : "var(--border-color)",
-                    color: status === "PROCESSING" ? eng.color : "var(--text-secondary)"
+                  <span className={`engine-badge-status ${status === "ON DUTY" ? "active" : ""}`} style={{
+                    borderColor: status === "ON DUTY" ? "var(--accent-green)" : "var(--border-color)",
+                    color: status === "ON DUTY" ? "var(--accent-green)" : "var(--text-secondary)"
                   }}>
                     {status}
                   </span>
                 </div>
                 
-                <div className="engine-desc" style={{ minHeight: "36px" }}>
-                  {eng.role}
+                <div className="engine-desc" style={{ minHeight: "36px", fontSize: "12px", color: "var(--text-secondary)", marginTop: "8px" }}>
+                  Assigned Department: <strong style={{ color: "var(--text-primary)" }}>{emp.dept}</strong><br/>
+                  Designated Role: <strong style={{ color: "var(--text-primary)" }}>{emp.role}</strong>
                 </div>
 
-                <div className="chart-wrapper">
-                  <div className="chart-label">
-                    <span>WORKLOAD CAPACITY</span>
-                    <span style={{ color: eng.color, fontWeight: "bold", fontFamily: "var(--font-mono)" }}>
-                      {Math.round((currentLoad / 60) * 100)}% LOAD
+                <div className="chart-wrapper" style={{ marginTop: "12px" }}>
+                  <div className="chart-label" style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", color: "var(--text-muted)", marginBottom: "4px" }}>
+                    <span>DAILY WORK HOURS</span>
+                    <span style={{ color: empColor, fontWeight: "bold", fontFamily: "var(--font-mono)" }}>
+                      {currentHours} hrs today
                     </span>
                   </div>
                   
                   <svg viewBox="0 0 300 60" style={{ width: "100%", height: "60px", background: "rgba(0, 0, 0, 0.01)", border: "1px solid var(--border-color)", borderRadius: "6px" }}>
                     <defs>
-                      <linearGradient id={eng.gradientId} x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={eng.color} stopOpacity="0.2" />
-                        <stop offset="100%" stopColor={eng.color} stopOpacity="0.0" />
+                      <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={empColor} stopOpacity="0.2" />
+                        <stop offset="100%" stopColor={empColor} stopOpacity="0.0" />
                       </linearGradient>
                     </defs>
                     
                     <line x1="0" y1="20" x2="300" y2="20" stroke="rgba(0, 0, 0, 0.03)" strokeWidth="1" />
                     <line x1="0" y1="40" x2="300" y2="40" stroke="rgba(0, 0, 0, 0.03)" strokeWidth="1" />
                     
-                    <path d={generateAreaPath(wavePoints)} fill={`url(#${eng.gradientId})`} />
-                    <path d={generatePath(wavePoints)} fill="none" stroke={eng.color} strokeWidth="1.5" strokeLinecap="round" />
+                    <path d={generateAreaPath(wavePoints, gradientId)} fill={`url(#${gradientId})`} />
+                    <path d={generatePath(wavePoints)} fill="none" stroke={empColor} strokeWidth="1.5" strokeLinecap="round" />
                   </svg>
                 </div>
               </div>
@@ -725,36 +672,35 @@ export function EngineTab({ memories = [], onAddMemory }) {
         </div>
       </div>
 
-      {/* Consultation Modal Dialog */}
-      {activeConsultBot && (
+      {/* Employee Dossier Modal */}
+      {selectedEmp && (
         <div className="modal-overlay" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <div className="modal-content" style={{ maxWidth: "680px", width: "90%", display: "flex", flexDirection: "column", height: "560px", padding: "20px" }}>
+          <div className="modal-content" style={{ maxWidth: "600px", width: "90%", display: "flex", flexDirection: "column", height: "480px", padding: "20px" }}>
             
-            {/* Modal Header */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--border-color)", paddingBottom: "14px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                 <div style={{
                   width: "36px", height: "36px", borderRadius: "50%",
                   background: "rgba(0, 240, 255, 0.04)", border: "1px solid var(--accent-cyan)",
-                  display: "flex", alignItems: "center", justifyContent: "center", color: activeConsultBot.color
+                  display: "flex", alignItems: "center", justifyContent: "center", color: getRoleColor(selectedEmp.role)
                 }}>
-                  {React.createElement(activeConsultBot.icon, { size: 18 })}
+                  {React.createElement(getRoleIcon(selectedEmp.role), { size: 18 })}
                 </div>
                 <div>
                   <h3 className="modal-title" style={{ margin: 0, fontSize: "16px", fontWeight: "600", color: "var(--text-primary)" }}>
-                    Consult: {activeConsultBot.name}
+                    Employee Dossier: {selectedEmp.name}
                   </h3>
                   <div style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "2px" }}>
-                    <span className="live-dot" style={{ display: "inline-block", width: "6px", height: "6px", borderRadius: "50%", background: "var(--accent-green)", animation: "pulse-green 1.5s infinite" }} />
+                    <span className="live-dot" style={{ display: "inline-block", width: "6px", height: "6px", borderRadius: "50%", background: getEmployeeStatus(selectedEmp.empId) === "ON DUTY" ? "var(--accent-green)" : "var(--text-muted)", animation: getEmployeeStatus(selectedEmp.empId) === "ON DUTY" ? "pulse-green 1.5s infinite" : "none" }} />
                     <span style={{ fontSize: "10px", color: "var(--text-secondary)", fontFamily: "var(--font-mono)" }}>
-                      {activeConsultBot.meta}
+                      {selectedEmp.empId} &bull; {getEmployeeStatus(selectedEmp.empId)}
                     </span>
                   </div>
                 </div>
               </div>
               
               <button 
-                onClick={() => setActiveConsultBot(null)}
+                onClick={() => setSelectedEmp(null)}
                 style={{ 
                   background: "transparent", border: "none", cursor: "pointer", 
                   color: "var(--text-secondary)", padding: "6px", borderRadius: "50%",
@@ -766,151 +712,80 @@ export function EngineTab({ memories = [], onAddMemory }) {
               </button>
             </div>
 
-            {/* Chat Bubble Stream */}
-            <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "14px", margin: "16px 0", paddingRight: "6px" }}>
-              {chatLog.map((chat) => {
-                const isBot = chat.sender === "bot";
-                const isCommitted = committedMsgs[chat.id];
-                
-                return (
-                  <div key={chat.id} style={{
-                    alignSelf: isBot ? "flex-start" : "flex-end",
-                    display: "flex", gap: "10px", flexDirection: isBot ? "row" : "row-reverse",
-                    maxWidth: "85%"
-                  }}>
-                    <div style={{
-                      width: "28px", height: "28px", borderRadius: "50%",
-                      background: isBot ? "rgba(0, 240, 255, 0.05)" : "var(--bg-input)",
-                      border: `1px solid ${isBot ? "var(--accent-cyan)" : "var(--border-color)"}`,
-                      display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0
-                    }}>
-                      {isBot ? <Bot size={14} style={{ color: "var(--accent-cyan)" }} /> : <Users size={14} style={{ color: "var(--text-secondary)" }} />}
-                    </div>
-
-                    <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                      <div style={{
-                        background: isBot ? "rgba(2, 132, 199, 0.03)" : "var(--bg-input)",
-                        border: `1px solid ${isBot ? "rgba(2, 132, 199, 0.12)" : "var(--border-color)"}`,
-                        borderRadius: "10px", padding: "12px 14px", fontSize: "13px", lineHeight: "1.5",
-                        color: "var(--text-primary)", whiteSpace: "pre-wrap", fontFamily: "var(--font-sans)"
-                      }}>
-                        {chat.text}
-                        
-                        {/* Action buttons */}
-                        {isBot && (chat.isCommitable || chat.isDeployable) && (
-                          <div style={{ marginTop: "10px", borderTop: "1px solid var(--border-color)", paddingTop: "8px", display: "flex", justifyContent: "flex-end", gap: "8px" }}>
-                            {chat.isCommitable && (
-                              <button
-                                onClick={() => handleCommitInsight(chat.id, chat.insightText)}
-                                disabled={isCommitted}
-                                className="btn btn-secondary"
-                                style={{ 
-                                  padding: "4px 10px", fontSize: "11px", gap: "4px",
-                                  background: isCommitted ? "rgba(16, 185, 129, 0.08)" : "var(--bg-main)",
-                                  borderColor: isCommitted ? "rgba(16, 185, 129, 0.2)" : "var(--border-color)",
-                                  color: isCommitted ? "var(--accent-green)" : "var(--accent-cyan)"
-                                }}
-                              >
-                                {isCommitted ? (
-                                  <>
-                                    <Check size={12} strokeWidth={3} /> Committed to Vault
-                                  </>
-                                ) : (
-                                  <>
-                                    <Brain size={12} /> Commit to Memory Vault
-                                  </>
-                                )}
-                              </button>
-                            )}
-
-                            {chat.isDeployable && (
-                              <button
-                                onClick={() => handleDeployApp(chat.id, chat.deployQuery)}
-                                disabled={deployingId === chat.id}
-                                className="btn btn-secondary"
-                                style={{ 
-                                  padding: "4px 10px", fontSize: "11px", gap: "4px",
-                                  color: "var(--accent-blue)"
-                                }}
-                              >
-                                {deployingId === chat.id ? "Deploying..." : "🚀 Deploy to Workspace"}
-                              </button>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                      <span style={{ fontSize: "9px", color: "var(--text-muted)", fontFamily: "var(--font-mono)", alignSelf: isBot ? "flex-start" : "flex-end" }}>
-                        {chat.time}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-
-              {isTyping && (
-                <div style={{ display: "flex", gap: "10px", alignSelf: "flex-start" }}>
-                  <div style={{
-                    width: "28px", height: "28px", borderRadius: "50%",
-                    background: "rgba(0, 240, 255, 0.05)", border: "1px solid var(--accent-cyan)",
-                    display: "flex", alignItems: "center", justifyContent: "center"
-                  }}>
-                    <Bot size={14} style={{ color: "var(--accent-cyan)" }} />
-                  </div>
-                  <div style={{
-                    background: "rgba(2, 132, 199, 0.03)", border: "1px solid rgba(2, 132, 199, 0.12)",
-                    borderRadius: "10px", padding: "10px 14px", display: "flex", alignItems: "center", gap: "6px"
-                  }}>
-                    <X size={12} className="spin-animation" style={{ animation: "spin 2s linear infinite", color: "var(--accent-cyan)" }} />
-                    <span style={{ fontSize: "12px", color: "var(--text-secondary)", fontFamily: "var(--font-mono)" }}>
-                      {activeConsultBot.name} is compiling task...
-                    </span>
-                  </div>
+            <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "16px", margin: "16px 0", paddingRight: "6px" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", background: "var(--bg-input)", border: "1px solid var(--border-color)", padding: "14px", borderRadius: "8px" }}>
+                <div style={{ fontSize: "12px" }}>
+                  <span style={{ color: "var(--text-muted)", display: "block" }}>DEPARTMENT</span>
+                  <strong style={{ color: "var(--text-primary)" }}>{selectedEmp.dept}</strong>
                 </div>
-              )}
-            </div>
+                <div style={{ fontSize: "12px" }}>
+                  <span style={{ color: "var(--text-muted)", display: "block" }}>ROLE</span>
+                  <strong style={{ color: "var(--text-primary)" }}>{selectedEmp.role}</strong>
+                </div>
+                <div style={{ fontSize: "12px" }}>
+                  <span style={{ color: "var(--text-muted)", display: "block" }}>EMPLOYEE ID</span>
+                  <strong style={{ color: "var(--text-primary)" }}>{selectedEmp.empId}</strong>
+                </div>
+                <div style={{ fontSize: "12px" }}>
+                  <span style={{ color: "var(--text-muted)", display: "block" }}>EMPLOYMENT TYPE</span>
+                  <strong style={{ color: "var(--text-primary)" }}>{selectedEmp.type}</strong>
+                </div>
+              </div>
 
-            {/* Quick Starters Section */}
-            <div style={{ marginBottom: "12px" }}>
-              <span style={{ fontSize: "10px", fontWeight: "bold", color: "var(--text-secondary)", display: "block", marginBottom: "6px" }}>
-                SUGGESTED TASK BLUEPRINTS
-              </span>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
-                {getConsultPresetStarters(activeConsultBot.id).map((starter, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => handleSendTask(starter.query)}
-                    className="light-helper-btn"
-                    style={{ fontSize: "11px", padding: "5px 10px" }}
-                    disabled={isTyping}
-                  >
-                    🚀 {starter.label}
-                  </button>
-                ))}
+              <div>
+                <h4 style={{ fontSize: "12px", color: "var(--text-secondary)", fontWeight: "600", marginBottom: "8px", textTransform: "uppercase" }}>
+                  Recent Attendance Logs
+                </h4>
+                {getEmployeeLogs(selectedEmp.empId).length === 0 ? (
+                  <div style={{ fontSize: "12px", color: "var(--text-muted)", fontStyle: "italic", textAlign: "center", padding: "16px", background: "rgba(0,0,0,0.05)", border: "1px solid var(--border-color)", borderRadius: "6px" }}>
+                    No attendance logs recorded.
+                  </div>
+                ) : (
+                  <div style={{ overflowX: "auto", border: "1px solid var(--border-color)", borderRadius: "6px" }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px", textAlign: "left" }}>
+                      <thead>
+                        <tr style={{ background: "var(--bg-input)", borderBottom: "1px solid var(--border-color)" }}>
+                          <th style={{ padding: "8px 12px", color: "var(--text-secondary)" }}>Date</th>
+                          <th style={{ padding: "8px 12px", color: "var(--text-secondary)" }}>Clock In</th>
+                          <th style={{ padding: "8px 12px", color: "var(--text-secondary)" }}>Clock Out</th>
+                          <th style={{ padding: "8px 12px", color: "var(--text-secondary)" }}>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {getEmployeeLogs(selectedEmp.empId).slice(0, 5).map((log, index) => {
+                          const date = new Date(log.loginTime || log.createdAt).toLocaleDateString();
+                          const inTime = new Date(log.loginTime || log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                          const outTime = log.logoutTime ? new Date(log.logoutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "—";
+                          return (
+                            <tr key={index} style={{ borderBottom: index < 4 ? "1px solid var(--border-color)" : "none", color: "var(--text-primary)" }}>
+                              <td style={{ padding: "8px 12px" }}>{date}</td>
+                              <td style={{ padding: "8px 12px" }}>{inTime}</td>
+                              <td style={{ padding: "8px 12px" }}>{outTime}</td>
+                              <td style={{ padding: "8px 12px" }}>
+                                <span style={{ 
+                                  fontSize: "10px", padding: "2px 6px", borderRadius: "10px", fontWeight: "bold",
+                                  background: log.status === "Left" ? "rgba(239, 68, 68, 0.08)" : "rgba(16, 185, 129, 0.08)",
+                                  color: log.status === "Left" ? "var(--accent-red)" : "var(--accent-green)",
+                                  border: `1px solid ${log.status === "Left" ? "rgba(239, 68, 68, 0.15)" : "rgba(16, 185, 129, 0.15)"}`
+                                }}>
+                                  {log.status === "Left" ? "LEFT" : "ON DUTY"}
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Form Input Panel */}
-            <form onSubmit={(e) => { e.preventDefault(); handleSendTask(); }} style={{ display: "flex", gap: "10px" }}>
-              <input
-                type="text"
-                placeholder={`Describe a task for ${activeConsultBot.name} to execute...`}
-                value={taskInput}
-                onChange={(e) => setTaskInput(e.target.value)}
-                disabled={isTyping}
-                style={{
-                  flex: 1, background: "var(--bg-input)", border: "1px solid var(--border-color)",
-                  borderRadius: "8px", padding: "10px 14px", color: "var(--text-primary)", outline: "none", fontSize: "13px"
-                }}
-              />
-              <button
-                type="submit"
-                disabled={isTyping || !taskInput.trim()}
-                className="btn"
-                style={{ padding: "0 16px", height: "40px", background: "var(--accent-cyan)" }}
-              >
-                <Send size={15} />
+            <div style={{ display: "flex", justifyContent: "flex-end", borderTop: "1px solid var(--border-color)", paddingTop: "14px" }}>
+              <button onClick={() => setSelectedEmp(null)} className="btn btn-secondary" style={{ padding: "8px 16px", borderRadius: "6px" }}>
+                Close Profile
               </button>
-            </form>
+            </div>
 
           </div>
         </div>

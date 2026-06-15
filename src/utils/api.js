@@ -11,7 +11,7 @@ const DEFAULT_EMPLOYEES = [
   { name: "kevin",      role: "Lead QA Tester",           dept: "QA (AI Agent)",              empId: "EMP-2026-0008", type: "Autonomous", passcode: "kevin" },
   { name: "rachel",     role: "Lead Marketing Manager",   dept: "Marketing (AI Agent)",       empId: "EMP-2026-0009", type: "Autonomous", passcode: "rachel" },
   { name: "harvey",     role: "Lead Legal Counsel",       dept: "Legal (AI Agent)",           empId: "EMP-2026-0010", type: "Autonomous", passcode: "harvey" },
-  { name: "antigravity", role: "AI Coding Assistant Bot",  dept: "Antigravity AI (AI Agent)",   empId: "EMP-2026-0011", type: "Autonomous", passcode: "antigravity" },
+  { name: "main_engineer", role: "AI Coding Assistant Bot",  dept: "Main Engineer AI (AI Agent)",   empId: "EMP-2026-0011", type: "Autonomous", passcode: "main_engineer" },
   { name: "Ayush Dey",  role: "frontend developer",       dept: "Engineering (AI Agent)",     empId: "EMP-2026-3254", type: "Full-Time",  passcode: "bb328RTS" },
   { name: "Ankit Roy",  role: "Devop",                    dept: "Executive (Human)",          empId: "EMP-2026-2596", type: "Full-Time",  passcode: "8ballpool" }
 ];
@@ -309,7 +309,7 @@ export const AaceApi = {
       };
     }
 
-    if (pathname === "/api/antigravity/chat" && method === "POST") {
+    if (pathname === "/api/main-engineer/chat" && method === "POST") {
       const { message } = body;
       const lower = message.toLowerCase();
       let text = "I am currently running in offline local mode. I am ready to assist you with coding tasks.";
@@ -343,11 +343,11 @@ export const AaceApi = {
       return { text, stagedFiles };
     }
 
-    if (pathname === "/api/antigravity/sandbox" && method === "GET") {
+    if (pathname === "/api/main-engineer/sandbox" && method === "GET") {
       return JSON.parse(localStorage.getItem("aace_staged_files") || "[]");
     }
 
-    if (pathname === "/api/antigravity/merge" && method === "POST") {
+    if (pathname === "/api/main-engineer/merge" && method === "POST") {
       const { filename } = body;
       return { success: true, url: `http://localhost:5173/${filename}`, filename };
     }
@@ -785,8 +785,8 @@ export const AaceApi = {
 </html>`;
   },
 
-  async antigravityChat(message, history = []) {
-    return this.request("/api/antigravity/chat", {
+  async mainEngineerChat(message, history = []) {
+    return this.request("/api/main-engineer/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message, history })
@@ -794,11 +794,11 @@ export const AaceApi = {
   },
 
   async getSandboxFiles() {
-    return this.request("/api/antigravity/sandbox");
+    return this.request("/api/main-engineer/sandbox");
   },
 
   async mergeSandboxFile(filename) {
-    return this.request("/api/antigravity/merge", {
+    return this.request("/api/main-engineer/merge", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ filename })

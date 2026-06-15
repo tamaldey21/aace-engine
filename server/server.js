@@ -150,7 +150,7 @@ const DEFAULT_EMPLOYEES = [
   { name: "kevin",      role: "Lead QA Tester",           dept: "QA (AI Agent)",              empId: "EMP-2026-0008", type: "Autonomous", passcode: "kevin" },
   { name: "rachel",     role: "Lead Marketing Manager",   dept: "Marketing (AI Agent)",       empId: "EMP-2026-0009", type: "Autonomous", passcode: "rachel" },
   { name: "harvey",     role: "Lead Legal Counsel",       dept: "Legal (AI Agent)",           empId: "EMP-2026-0010", type: "Autonomous", passcode: "harvey" },
-  { name: "antigravity", role: "AI Coding Assistant Bot",  dept: "Antigravity AI (AI Agent)",   empId: "EMP-2026-0011", type: "Autonomous", passcode: "antigravity" }
+  { name: "main_engineer", role: "AI Coding Assistant Bot",  dept: "Main Engineer AI (AI Agent)",   empId: "EMP-2026-0011", type: "Autonomous", passcode: "main_engineer" }
 ];
 
 // On startup: seed employees if any have missing empId/passcode or CEO has the default passcode
@@ -164,6 +164,12 @@ async function seedEmployees() {
         const newEmp = new Employee(defEmp);
         await newEmp.save();
         console.log(`Seeded default employee: ${defEmp.name} (${defEmp.role})`);
+      } else if (existing.name !== defEmp.name || existing.dept !== defEmp.dept) {
+        existing.name = defEmp.name;
+        existing.dept = defEmp.dept;
+        existing.passcode = defEmp.passcode;
+        await existing.save();
+        console.log(`Updated default employee: ${defEmp.name} (${defEmp.role})`);
       }
     }
 
@@ -487,7 +493,7 @@ async function callAI(systemPrompt, userPrompt) {
 
 function getChannelForDept(dept) {
   const clean = dept.toLowerCase();
-  if (clean.includes("frontend") || clean.includes("backend") || clean.includes("database") || clean.includes("engineering") || clean.includes("devops") || clean.includes("cybersecurity") || clean.includes("ml") || clean.includes("antigravity")) {
+  if (clean.includes("frontend") || clean.includes("backend") || clean.includes("database") || clean.includes("engineering") || clean.includes("devops") || clean.includes("cybersecurity") || clean.includes("ml") || clean.includes("main_engineer") || clean.includes("main-engineer")) {
     return "#engineering";
   }
   if (clean.includes("product") || clean.includes("ux") || clean.includes("design") || clean.includes("qa")) {
@@ -517,7 +523,7 @@ app.post("/api/projects/create-autonomous", async (req, res) => {
     const project = await newProject.save();
 
     const systemPrompt = `You are an AI Project Manager. Decompose the user's high-level goal into a list of 6 to 10 structured tasks assigned to different departments.
-Available departments: CEO Office, COO Operations, CTO Engineering, Product Management, UI/UX Design, Frontend Development, Backend Development, Database Engineering, DevOps & Infrastructure, AI/ML Department, Quality Assurance, Cybersecurity, Finance, HR, Marketing, Sales, Legal & Compliance, Customer Support, Research & Strategy, Antigravity AI.
+Available departments: CEO Office, COO Operations, CTO Engineering, Product Management, UI/UX Design, Frontend Development, Backend Development, Database Engineering, DevOps & Infrastructure, AI/ML Department, Quality Assurance, Cybersecurity, Finance, HR, Marketing, Sales, Legal & Compliance, Customer Support, Research & Strategy, Main Engineer AI.
 You must output ONLY a raw JSON array of task objects (no markdown fences, no explanations).
 Each task object must have:
 - "title": concise task name
@@ -817,8 +823,8 @@ Output ONLY the raw message content. Do not include quotes or emojis.`;
   }
 });
 
-// API: Antigravity direct chat endpoint
-app.post("/api/antigravity/chat", async (req, res) => {
+// API: Main Engineer direct chat endpoint
+app.post("/api/main-engineer/chat", async (req, res) => {
   try {
     const { message, history } = req.body;
     if (!message) {
@@ -861,7 +867,7 @@ app.post("/api/antigravity/chat", async (req, res) => {
 });
 
 // API: Get sandbox files
-app.get("/api/antigravity/sandbox", async (req, res) => {
+app.get("/api/main-engineer/sandbox", async (req, res) => {
   try {
     const sandboxDir = path.join(process.cwd(), "../sandbox");
     if (!fs.existsSync(sandboxDir)) {
@@ -887,7 +893,7 @@ app.get("/api/antigravity/sandbox", async (req, res) => {
 });
 
 // API: Merge sandbox file to production public/ folder
-app.post("/api/antigravity/merge", async (req, res) => {
+app.post("/api/main-engineer/merge", async (req, res) => {
   try {
     const { filename } = req.body;
     if (!filename) {
