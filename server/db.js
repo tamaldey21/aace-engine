@@ -68,11 +68,58 @@ const AttendanceSchema = new mongoose.Schema({
   loginTime: { type: Date, default: Date.now }
 });
 
+// 6. Project Schema
+const ProjectSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  description: { type: String },
+  status: { type: String, default: "Active" }, // Planning, Active, Completed
+  health: { type: Number, default: 100 },
+  progress: { type: Number, default: 0 },
+  createdAt: { type: Date, default: Date.now }
+});
+
+// 7. Task Schema
+const TaskSchema = new mongoose.Schema({
+  projectId: { type: String, required: true },
+  title: { type: String, required: true },
+  description: { type: String },
+  department: { type: String, required: true },
+  priority: { type: String, default: "Medium" }, // Low, Medium, High
+  complexity: { type: String, default: "Moderate" }, // Simple, Moderate, Complex
+  status: { type: String, default: "Backlog" }, // Backlog, In-Progress, Review, Completed
+  dependencies: { type: [String], default: [] },
+  deadline: { type: Date },
+  createdAt: { type: Date, default: Date.now }
+});
+
+// 8. Message Schema
+const MessageSchema = new mongoose.Schema({
+  projectId: { type: String, required: true },
+  sender: { type: String, required: true },
+  recipient: { type: String },
+  text: { type: String, required: true },
+  channel: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now }
+});
+
+// 9. Metric Schema
+const MetricSchema = new mongoose.Schema({
+  activeTasks: { type: Number, default: 0 },
+  completedTasks: { type: Number, default: 0 },
+  teamUtilization: { type: Number, default: 0 },
+  healthScore: { type: Number, default: 100 },
+  timestamp: { type: Date, default: Date.now }
+});
+
 const MongoCandidate = mongoose.model("Candidate", CandidateSchema);
 const MongoChatLog = mongoose.model("ChatLog", ChatLogSchema);
 const MongoMemory = mongoose.model("Memory", MemorySchema);
 const MongoEmployee = mongoose.model("Employee", EmployeeSchema);
 const MongoAttendance = mongoose.model("Attendance", AttendanceSchema);
+const MongoProject = mongoose.model("Project", ProjectSchema);
+const MongoTask = mongoose.model("Task", TaskSchema);
+const MongoMessage = mongoose.model("Message", MessageSchema);
+const MongoMetric = mongoose.model("Metric", MetricSchema);
 
 // --- HYBRID DATABASE FALLBACK SYSTEM ---
 const FALLBACK_FILE = path.join(process.cwd(), "db_fallback.json");
@@ -90,7 +137,11 @@ function readFallbackDb() {
     chatlogs: [],
     memories: [],
     employees: [],
-    attendances: []
+    attendances: [],
+    projects: [],
+    tasks: [],
+    messages: [],
+    metrics: []
   };
 }
 
@@ -197,22 +248,24 @@ class HybridModel {
           const db = readFallbackDb();
           let list = db[this.collectionName] || [];
           
-          // Simple query filtering support
-          if (query.portal) {
-            list = list.filter(item => item.portal === query.portal);
-          }
-          if (query.empId) {
-            list = list.filter(item => item.empId === query.empId);
-          }
-          if (query.loginTime && typeof query.loginTime === 'object') {
-            const timeVal = query.loginTime;
-            list = list.filter(item => {
-              const itemTime = new Date(item.loginTime).getTime();
-              const gte = timeVal.$gte ? new Date(timeVal.$gte).getTime() : -Infinity;
-              const lte = timeVal.$lte ? new Date(timeVal.$lte).getTime() : Infinity;
-              return itemTime >= gte && itemTime <= lte;
+          // Generic query filtering support
+          list = list.filter(item => {
+            return Object.keys(query).every(key => {
+              const val = query[key];
+              if (val instanceof RegExp) {
+                return val.test(item[key]);
+              }
+              if (val && typeof val === 'object') {
+                if (val.$gte || val.$lte) {
+                  const itemTime = new Date(item[key]).getTime();
+                  const gte = val.$gte ? new Date(val.$gte).getTime() : -Infinity;
+                  const lte = val.$lte ? new Date(val.$lte).getTime() : Infinity;
+                  return itemTime >= gte && itemTime <= lte;
+                }
+              }
+              return item[key] === val;
             });
-          }
+          });
 
           // Apply sorting
           if (this._sort) {
@@ -318,5 +371,9 @@ export const ChatLog = createHybridModel("ChatLog", "chatlogs", MongoChatLog);
 export const Memory = createHybridModel("Memory", "memories", MongoMemory);
 export const Employee = createHybridModel("Employee", "employees", MongoEmployee);
 export const Attendance = createHybridModel("Attendance", "attendances", MongoAttendance);
+export const Project = createHybridModel("Project", "projects", MongoProject);
+export const Task = createHybridModel("Task", "tasks", MongoTask);
+export const Message = createHybridModel("Message", "messages", MongoMessage);
+export const Metric = createHybridModel("Metric", "metrics", MongoMetric);
 
 export default mongoose;

@@ -3,7 +3,7 @@ import cors from "cors";
 import fs from "fs";
 import path from "path";
 import { dbReady } from "./db.js"; // Initialize connection
-import { Candidate, ChatLog, Memory, Employee, Attendance } from "./db.js";
+import { Candidate, ChatLog, Memory, Employee, Attendance, Project, Task, Message, Metric } from "./db.js";
 import { compileHTML } from "./compiler.js";
 
 const app = express();
@@ -423,6 +423,368 @@ app.post("/api/logout", async (req, res) => {
     }
 
     res.json({ success: true, message: "No attendance log found to update." });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// AI Helper for Goal Planning and Dialogue Simulation
+async function callAI(systemPrompt, userPrompt) {
+  const activeKey = process.env.VITE_API_KEY_ENGINEER || process.env.VITE_API_KEY_CEO;
+  const isGemini = !process.env.VITE_API_KEY_ENGINEER && process.env.VITE_API_KEY_CEO;
+
+  if (!activeKey) {
+    console.log("[server] No API key configured, using mock fallback.");
+    return null;
+  }
+
+  try {
+    if (isGemini) {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${activeKey}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [
+            {
+              role: "user",
+              parts: [{ text: `${systemPrompt}\n\nUser Prompt: ${userPrompt}` }]
+            }
+          ],
+          generationConfig: { maxOutputTokens: 2048 }
+        })
+      });
+      if (response.ok) {
+        const resJson = await response.json();
+        return resJson.candidates?.[0]?.content?.parts?.[0]?.text;
+      }
+    } else {
+      const response = await fetch("https://api.bluesminds.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${activeKey}`
+        },
+        body: JSON.stringify({
+          model: "Kimi-K2.6-azure",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt }
+          ]
+        })
+      });
+      if (response.ok) {
+        const resJson = await response.json();
+        return resJson.choices?.[0]?.message?.content;
+      }
+    }
+  } catch (err) {
+    console.error("[server] AI API call failed:", err);
+  }
+  return null;
+}
+
+function getChannelForDept(dept) {
+  const clean = dept.toLowerCase();
+  if (clean.includes("frontend") || clean.includes("backend") || clean.includes("database") || clean.includes("engineering") || clean.includes("devops") || clean.includes("cybersecurity") || clean.includes("ml")) {
+    return "#engineering";
+  }
+  if (clean.includes("product") || clean.includes("ux") || clean.includes("design") || clean.includes("qa")) {
+    return "#product";
+  }
+  if (clean.includes("coo") || clean.includes("operations") || clean.includes("hr") || clean.includes("finance") || clean.includes("marketing") || clean.includes("sales") || clean.includes("legal") || clean.includes("customer")) {
+    return "#operations";
+  }
+  return "#general";
+}
+
+// API: Create Autonomous Project & Route Tasks
+app.post("/api/projects/create-autonomous", async (req, res) => {
+  try {
+    const { goal } = req.body;
+    if (!goal) {
+      return res.status(400).json({ error: "goal is required" });
+    }
+
+    const newProject = new Project({
+      name: goal,
+      description: `Autonomous project to realize: ${goal}`,
+      status: "Active",
+      progress: 0,
+      health: 100
+    });
+    const project = await newProject.save();
+
+    const systemPrompt = `You are an AI Project Manager. Decompose the user's high-level goal into a list of 6 to 10 structured tasks assigned to different departments.
+Available departments: CEO Office, COO Operations, CTO Engineering, Product Management, UI/UX Design, Frontend Development, Backend Development, Database Engineering, DevOps & Infrastructure, AI/ML Department, Quality Assurance, Cybersecurity, Finance, HR, Marketing, Sales, Legal & Compliance, Customer Support, Research & Strategy.
+You must output ONLY a raw JSON array of task objects (no markdown fences, no explanations).
+Each task object must have:
+- "title": concise task name
+- "description": description of work
+- "department": exact name of assigned department (must match one of the available departments)
+- "priority": "Low", "Medium", or "High"
+- "complexity": "Simple", "Moderate", or "Complex"
+- "deadlineOffsetDays": integer representing how many days from now this task should be completed (e.g. 1, 2, 3)
+`;
+
+    let generatedTasks = [];
+    const aiResponse = await callAI(systemPrompt, goal);
+    if (aiResponse) {
+      try {
+        let cleanText = aiResponse.trim();
+        if (cleanText.startsWith("```")) {
+          cleanText = cleanText.replace(/^```json\s*/, "").replace(/^```\s*/, "").replace(/\s*```$/, "");
+        }
+        generatedTasks = JSON.parse(cleanText);
+      } catch (err) {
+        console.error("[server] Failed to parse AI response JSON, using mock fallback.", err);
+      }
+    }
+
+    if (!generatedTasks || generatedTasks.length === 0) {
+      generatedTasks = [
+        { title: `Define requirements & specifications for ${goal}`, description: "Draft the Product Requirements Document (PRD) and align on project scope.", department: "Product Management", priority: "High", complexity: "Moderate", deadlineOffsetDays: 1 },
+        { title: `Design user flows & mockups for ${goal}`, description: "Build high-fidelity wireframes, styling schemas and glassmorphic UI designs.", department: "UI/UX Design", priority: "High", complexity: "Complex", deadlineOffsetDays: 2 },
+        { title: `Setup database models for ${goal}`, description: "Define collections, Mongoose schemas, and indexing strategies.", department: "Database Engineering", priority: "Medium", complexity: "Simple", deadlineOffsetDays: 3 },
+        { title: `Develop backend APIs for ${goal}`, description: "Build express REST endpoints, middleware controllers and service handlers.", department: "Backend Development", priority: "High", complexity: "Moderate", deadlineOffsetDays: 4 },
+        { title: `Implement React user interface for ${goal}`, description: "Build modern glassmorphic dashboard views and tie with APIs.", department: "Frontend Development", priority: "High", complexity: "Complex", deadlineOffsetDays: 5 },
+        { title: `Integrate AI reasoning pipeline for ${goal}`, description: "Connect department agents to simulation environment.", department: "AI/ML Department", priority: "Medium", complexity: "Complex", deadlineOffsetDays: 6 },
+        { title: `Perform system verification & QA for ${goal}`, description: "Execute unit and integration test scripts and report blockers.", department: "Quality Assurance", priority: "High", complexity: "Moderate", deadlineOffsetDays: 7 },
+        { title: `Deploy & launch ${goal}`, description: "Configure production CI/CD deployments and dispatch live event hooks.", department: "DevOps & Infrastructure", priority: "Medium", complexity: "Simple", deadlineOffsetDays: 8 }
+      ];
+    }
+
+    const savedTasks = [];
+    let prevTaskId = null;
+
+    for (let i = 0; i < generatedTasks.length; i++) {
+      const gt = generatedTasks[i];
+      const deadline = new Date();
+      deadline.setDate(deadline.getDate() + (gt.deadlineOffsetDays || 1));
+
+      const newTask = new Task({
+        projectId: project._id,
+        title: gt.title,
+        description: gt.description || "",
+        department: gt.department || "COO Operations",
+        priority: gt.priority || "Medium",
+        complexity: gt.complexity || "Moderate",
+        status: "Backlog",
+        dependencies: prevTaskId ? [prevTaskId] : [],
+        deadline
+      });
+
+      const saved = await newTask.save();
+      savedTasks.push(saved);
+      prevTaskId = saved._id.toString();
+    }
+
+    const announceMsg = new Message({
+      projectId: project._id,
+      sender: "CEO Office",
+      text: `Hello team, we have initialized a new company objective: "${goal}". I have mapped out the task sequence and assigned tasks to departments. Let's begin autonomous execution immediately!`,
+      channel: "#general"
+    });
+    await announceMsg.save();
+
+    triggerN8nWebhook("project_created", { project, tasks: savedTasks });
+
+    res.json({ project, tasks: savedTasks });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// API: Get projects
+app.get("/api/projects", async (req, res) => {
+  try {
+    const list = await Project.find().sort({ createdAt: -1 });
+    res.json(list);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// API: Delete project
+app.delete("/api/projects", async (req, res) => {
+  try {
+    const projectId = req.query.id || req.body.id || req.query.projectId || req.body.projectId;
+    if (!projectId) {
+      return res.status(400).json({ error: "id is required" });
+    }
+    await Project.deleteOne({ _id: projectId });
+    await Task.deleteOne({ projectId });
+    await Message.deleteOne({ projectId });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// API: Get tasks
+app.get("/api/tasks", async (req, res) => {
+  try {
+    const { projectId } = req.query;
+    const filter = projectId ? { projectId } : {};
+    const list = await Task.find(filter).sort({ createdAt: 1 });
+    res.json(list);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// API: Get project messages
+app.get("/api/messages", async (req, res) => {
+  try {
+    const { projectId, channel } = req.query;
+    const filter = {};
+    if (projectId) filter.projectId = projectId;
+    if (channel) filter.channel = channel;
+    const list = await Message.find(filter).sort({ createdAt: 1 });
+    res.json(list);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// API: Send manual message
+app.post("/api/messages", async (req, res) => {
+  try {
+    const { projectId, sender, text, channel } = req.body;
+    if (!projectId || !sender || !text || !channel) {
+      return res.status(400).json({ error: "projectId, sender, text, and channel are required" });
+    }
+    const newMsg = new Message({ projectId, sender, text, channel });
+    const saved = await newMsg.save();
+    res.json(saved);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// API: Get company metrics
+app.get("/api/metrics", async (req, res) => {
+  try {
+    const tasks = await Task.find();
+    const active = tasks.filter(t => t.status !== "Completed").length;
+    const completed = tasks.filter(t => t.status === "Completed").length;
+    
+    const healthScore = Math.max(65, 100 - active * 2);
+    
+    const uniqueDepts = new Set(tasks.filter(t => t.status !== "Completed").map(t => t.department));
+    const teamUtilization = Math.min(100, Math.round((uniqueDepts.size / 19) * 100));
+    
+    res.json({
+      activeTasks: active,
+      completedTasks: completed,
+      teamUtilization: teamUtilization || 15,
+      healthScore: healthScore || 98,
+      timestamp: new Date()
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// API: Simulate chat dialogue & advance task progress
+app.post("/api/projects/simulate-chat", async (req, res) => {
+  try {
+    const { projectId } = req.body;
+    if (!projectId) {
+      return res.status(400).json({ error: "projectId is required" });
+    }
+
+    const project = await Project.findOne({ _id: projectId });
+    if (!project) {
+      return res.status(404).json({ error: "Project not found" });
+    }
+
+    const tasks = await Task.find({ projectId });
+    const incompleteTasks = tasks.filter(t => t.status !== "Completed");
+
+    if (incompleteTasks.length === 0) {
+      const compMsg = new Message({
+        projectId,
+        sender: "CEO Office",
+        text: `Objective "${project.name}" has been fully completed! Congratulations to all departments on a successful autonomous run.`,
+        channel: "#general"
+      });
+      const savedMsg = await compMsg.save();
+
+      project.status = "Completed";
+      project.progress = 100;
+      await project.save();
+
+      triggerN8nWebhook("project_completed", { project });
+
+      return res.json({ message: savedMsg, project, task: null });
+    }
+
+    const activeTask = incompleteTasks[0];
+    const prevStatus = activeTask.status;
+    let nextStatus = "In-Progress";
+
+    if (prevStatus === "Backlog") {
+      nextStatus = "In-Progress";
+    } else if (prevStatus === "In-Progress") {
+      nextStatus = "Review";
+    } else if (prevStatus === "Review") {
+      nextStatus = "Completed";
+    }
+
+    activeTask.status = nextStatus;
+    const updatedTask = await activeTask.save();
+
+    const updatedTasks = await Task.find({ projectId });
+    const completedCount = updatedTasks.filter(t => t.status === "Completed").length;
+    const progress = Math.round((completedCount / updatedTasks.length) * 100);
+
+    project.progress = progress;
+    if (progress === 100) {
+      project.status = "Completed";
+    }
+    await project.save();
+
+    const sysPrompt = `You are the AI bot representing the "${activeTask.department}" department in a company messaging room.
+You are working on the project "${project.name}".
+Your current task is: "${activeTask.title}" (${activeTask.description}).
+You are updating the status of this task from "${prevStatus}" to "${nextStatus}".
+Write a concise, professional message (under 3 lines) to post in the channel explaining your progress, next steps, or that you've finished the task.
+Output ONLY the raw message content. Do not include quotes or emojis.`;
+
+    let dialogueText = null;
+    const aiResponse = await callAI(sysPrompt, `Task: ${activeTask.title}, moving from ${prevStatus} to ${nextStatus}.`);
+    if (aiResponse) {
+      dialogueText = aiResponse.trim();
+    }
+
+    if (!dialogueText) {
+      if (nextStatus === "In-Progress") {
+        dialogueText = `Analyzing scope for task "${activeTask.title}". We are setting up dependencies and starting implementation today.`;
+      } else if (nextStatus === "Review") {
+        dialogueText = `Draft version of "${activeTask.title}" is complete. We've initiated internally-audited reviews and checks.`;
+      } else {
+        dialogueText = `Task "${activeTask.title}" has been successfully completed and verified. Moving on to subsequent tasks in the queue.`;
+      }
+    }
+
+    const channel = getChannelForDept(activeTask.department);
+
+    const chatMsg = new Message({
+      projectId,
+      sender: `${activeTask.department} Bot`,
+      text: dialogueText,
+      channel
+    });
+    const savedMsg = await chatMsg.save();
+
+    triggerN8nWebhook("simulation_step", {
+      projectId,
+      message: savedMsg,
+      task: updatedTask,
+      projectProgress: progress
+    });
+
+    res.json({ message: savedMsg, project, task: updatedTask });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

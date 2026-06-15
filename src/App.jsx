@@ -3,7 +3,7 @@ import { Cpu, Brain, Activity, LogOut, MessageSquare, Briefcase, Code, Users, Se
 import { AaceApi } from "./utils/api";
 import ConsoleTab from "./components/ConsoleTab";
 import MemoryTab from "./components/MemoryTab";
-import EngineTab from "./components/EngineTab";
+import EngineTab, { ENGINES_INFO } from "./components/EngineTab";
 import LoginGate from "./components/LoginGate";
 import CeoChat from "./components/CeoChat";
 import HrPortal from "./components/HrPortal";
@@ -14,6 +14,9 @@ import UiUxPortal from "./components/UiUxPortal";
 import QaPortal from "./components/QaPortal";
 import MarketingPortal from "./components/MarketingPortal";
 import LegalPortal from "./components/LegalPortal";
+import DeptDashboard from "./components/DeptDashboard";
+import ExecutiveChat from "./components/ExecutiveChat";
+import { Sun, Moon } from "lucide-react";
 
 const INITIAL_MEMORIES = [
   "Engineering stack parameters are bound to Vite + React + Node.js.",
@@ -41,6 +44,16 @@ export function App() {
     const role = localStorage.getItem("aace_user_role") || "";
     return role === "ceo" ? "console" : "portal";
   });
+  
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem("aace_theme") || "dark";
+  });
+  const [selectedDept, setSelectedDept] = useState(null);
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("aace_theme", theme);
+  }, [theme]);
   const [memories, setMemories] = useState([]);
   const [apiBaseUrl, setApiBaseUrl] = useState(() => {
     return AaceApi.getApiBaseUrl();
@@ -393,6 +406,47 @@ export function App() {
                   <Activity size={15} />
                   <span>Engine Matrix</span>
                 </div>
+
+                <div 
+                  className={`nav-item ${activeTab === "executive_chat" ? "active" : ""}`}
+                  onClick={() => setActiveTab("executive_chat")}
+                >
+                  <MessageSquare size={15} />
+                  <span>Executive Chat</span>
+                </div>
+
+                <div style={{ marginTop: "12px", borderTop: "1px solid var(--border-color)", paddingTop: "12px", paddingLeft: "8px", paddingRight: "8px" }}>
+                  <label style={{ fontSize: "9px", color: "var(--text-muted)", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.5px", display: "block", marginBottom: "6px" }}>
+                    AI Departments
+                  </label>
+                  <select
+                    value={activeTab === "dept_dashboard" && selectedDept ? selectedDept.id : ""}
+                    onChange={(e) => {
+                      const deptId = e.target.value;
+                      if (!deptId) return;
+                      const dept = ENGINES_INFO.find(d => d.id === deptId);
+                      if (dept) {
+                        setSelectedDept(dept);
+                        setActiveTab("dept_dashboard");
+                      }
+                    }}
+                    style={{
+                      padding: "6px 10px",
+                      fontSize: "11px",
+                      background: "rgba(0,0,0,0.4)",
+                      border: "1px solid var(--border-color)",
+                      color: "white",
+                      borderRadius: "4px",
+                      width: "100%",
+                      outline: "none"
+                    }}
+                  >
+                    <option value="">-- Choose Dept --</option>
+                    {ENGINES_INFO.map(dept => (
+                      <option key={dept.id} value={dept.id}>{dept.name}</option>
+                    ))}
+                  </select>
+                </div>
               </>
             ) : (
               // Employee Portals
@@ -499,7 +553,9 @@ export function App() {
               {userRole === "ceo" && activeTab === "marketing" && "Human Marketing Manager Workspace (Rachel)"}
               {userRole === "ceo" && activeTab === "legal" && "Human Legal Counsel Workspace (Harvey)"}
               {userRole === "ceo" && activeTab === "memory" && "Global Context Ledger Repository"}
-              {userRole === "ceo" && activeTab === "engines" && "10-Engine Diagnostic Grid"}
+              {userRole === "ceo" && activeTab === "engines" && "19-Engine Diagnostic Grid"}
+              {userRole === "ceo" && activeTab === "executive_chat" && "Executive Messaging Board"}
+              {userRole === "ceo" && activeTab === "dept_dashboard" && (selectedDept ? `${selectedDept.name} Workspace` : "AI Department Dashboard")}
               
               {userRole === "hr" && `HR Operations Bot Workspace (${getRoleDisplayName()})`}
               {userRole === "cto" && `CTO Architecture Bot Workspace (${getRoleDisplayName()})`}
@@ -516,6 +572,27 @@ export function App() {
           </div>
           
           <div className="system-status" style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+            <button
+              onClick={() => setTheme(prev => prev === "light" ? "dark" : "light")}
+              style={{
+                padding: "6px 10px",
+                borderRadius: "20px",
+                border: "1px solid var(--border-color)",
+                background: "rgba(255,255,255,0.04)",
+                color: "var(--text-primary)",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                cursor: "pointer",
+                outline: "none"
+              }}
+              title={`Switch to ${theme === "light" ? "Dark" : "Light"} Mode`}
+            >
+              {theme === "light" ? <Moon size={13} /> : <Sun size={13} />}
+              <span style={{ fontSize: "10px", fontWeight: "bold" }}>
+                {theme === "light" ? "DARK" : "LIGHT"}
+              </span>
+            </button>
             <div style={{
               display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", fontWeight: "bold",
               padding: "4px 10px", borderRadius: "12px", border: "1px solid",
@@ -586,6 +663,12 @@ export function App() {
                   memories={memories}
                   onAddMemory={handleAddMemory}
                 />
+              )}
+              {activeTab === "executive_chat" && (
+                <ExecutiveChat />
+              )}
+              {activeTab === "dept_dashboard" && selectedDept && (
+                <DeptDashboard department={selectedDept} />
               )}
             </>
           ) : (

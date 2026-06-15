@@ -2,96 +2,177 @@ import React, { useState, useEffect } from "react";
 import { Cpu, Briefcase, Server, Code, Database, Play, Target, Users, Layers, ShieldCheck, Activity, X, Send, MessageSquare, Brain, Check, Bot } from "lucide-react";
 import { AaceApi } from "../utils/api";
 
-const ENGINES_INFO = [
+export const ENGINES_INFO = [
   {
     id: "ceo_bot",
-    name: "CEO Advisor Bot",
-    role: "Personal AI bot for strategic decisions, investor pitches, and executive advisor.",
+    name: "CEO Office",
+    role: "Strategic decisions, investor relations, corporate vision, and high-level advisory.",
     icon: Cpu,
     color: "var(--accent-cyan)",
     gradientId: "grad-ceo_bot",
-    meta: "Model: DeepSeek-Reasoner | Priority: High"
+    meta: "Model: DeepSeek-R1 | Priority: Critical"
   },
   {
     id: "coo_bot",
-    name: "COO Operations Bot",
-    role: "Operational efficiency, workflows, Standard Operating Procedures (SOP), and margins.",
+    name: "COO Operations",
+    role: "Operational efficiency, automated company workflows, Gantt tracking, and daily logistics.",
     icon: Briefcase,
     color: "var(--accent-blue)",
     gradientId: "grad-coo_bot",
-    meta: "Model: GPT-4o | Integrations: Jira, Slack"
+    meta: "Model: GPT-4o | Integrations: Slack, Linear"
   },
   {
     id: "cto_bot",
-    name: "CTO Architecture Bot",
-    role: "Technical systems design, code quality validation, database layout parameters.",
+    name: "CTO Engineering",
+    role: "Technical architecture design, system scalability, security protocols, and infrastructure overview.",
     icon: Server,
     color: "var(--accent-purple)",
     gradientId: "grad-cto_bot",
-    meta: "Model: Gemini 1.5 Pro | Repo: GitHub Enterprise"
-  },
-  {
-    id: "frontend_bot",
-    name: "Frontend Developer Bot",
-    role: "Builds user interfaces: React components, CSS layouts, visual designs, assets.",
-    icon: Code,
-    color: "var(--text-secondary)",
-    gradientId: "grad-frontend_bot",
-    meta: "Model: CodeGen-2.0 | Framework: Vite React"
-  },
-  {
-    id: "backend_bot",
-    name: "Backend Developer Bot",
-    role: "Implements server-side CRUD routes, SQL/NoSQL tables, authentication middleware.",
-    icon: Database,
-    color: "#60a5fa",
-    gradientId: "grad-backend_bot",
-    meta: "Model: CodeGen-2.0 | Stack: Express Node.js"
-  },
-  {
-    id: "deploy_bot",
-    name: "DevOps & Deploy Bot",
-    role: "Deployment scripting, Docker builds, file compilation, server monitoring checks.",
-    icon: Play,
-    color: "var(--accent-green)",
-    gradientId: "grad-deploy_bot",
-    meta: "Model: DevOps-GPT | Container: Docker Hub"
-  },
-  {
-    id: "marketing_bot",
-    name: "Marketing & Growth Bot",
-    role: "Ad sets execution, newsletter writing, SEO campaigns, conversion optimization.",
-    icon: Target,
-    color: "var(--accent-yellow)",
-    gradientId: "grad-marketing_bot",
-    meta: "Model: Copywriter-XL | Focus: CTR & CAC"
-  },
-  {
-    id: "hr_bot",
-    name: "HR Operations Bot",
-    role: "Recruiting pipelines, employee documents, onboarding checklists, contract checks.",
-    icon: Users,
-    color: "#f472b6",
-    gradientId: "grad-hr_bot",
-    meta: "Model: GPT-4o-mini | Database: HRIS Vector"
+    meta: "Model: Gemini 1.5 Pro | Stack: Microservices"
   },
   {
     id: "product_bot",
-    name: "Product Manager Bot",
-    role: "Feature roadmaps, User stories, PRDs compilation, user retention checks.",
+    name: "Product Management",
+    role: "Product Requirements Documents (PRD), feature mapping, backlog prioritization, and agile roadmaps.",
     icon: Layers,
     color: "#38bdf8",
     gradientId: "grad-product_bot",
-    meta: "Model: ProductGPT-Pro | Method: Agile Scrum"
+    meta: "Model: ProductGPT-Pro | Method: Scrum"
+  },
+  {
+    id: "uiux_bot",
+    name: "UI/UX Design",
+    role: "User experience wireframes, interactive glassmorphic prototypes, and styling tokens.",
+    icon: Bot,
+    color: "#f472b6",
+    gradientId: "grad-uiux_bot",
+    meta: "Model: Midjourney-v6 | Engine: Figma API"
+  },
+  {
+    id: "frontend_bot",
+    name: "Frontend Development",
+    role: "Builds web UI: Vite React components, layout code, CSS animations, and theme systems.",
+    icon: Code,
+    color: "var(--text-secondary)",
+    gradientId: "grad-frontend_bot",
+    meta: "Model: CodeGen-2.5 | Framework: React Tailwind"
+  },
+  {
+    id: "backend_bot",
+    name: "Backend Development",
+    role: "Implements server routes, logic controllers, authentication middleware, and Webhooks.",
+    icon: Database,
+    color: "#60a5fa",
+    gradientId: "grad-backend_bot",
+    meta: "Model: CodeGen-2.5 | Runtime: Node 24 Express"
+  },
+  {
+    id: "db_bot",
+    name: "Database Engineering",
+    role: "Data persistence schemas, MongoDB Atlas connections, optimization indexes, and hybrid failovers.",
+    icon: Server,
+    color: "#10b981",
+    gradientId: "grad-db_bot",
+    meta: "Model: DbGPT-Core | Store: MongoDB Atlas"
+  },
+  {
+    id: "devops_bot",
+    name: "DevOps & Infrastructure",
+    role: "CI/CD automated deployment pipelines, Docker container builds, server monitors, and cloud metrics.",
+    icon: Play,
+    color: "var(--accent-green)",
+    gradientId: "grad-devops_bot",
+    meta: "Model: CloudOps-v2 | Host: Render & Netlify"
+  },
+  {
+    id: "aiml_bot",
+    name: "AI/ML Department",
+    role: "Deep learning model tuning, neural agents, natural language routers, and inference pipelines.",
+    icon: Brain,
+    color: "#a78bfa",
+    gradientId: "grad-aiml_bot",
+    meta: "Model: Gemini Flash | GPU: NVIDIA H100 Cluster"
+  },
+  {
+    id: "qa_bot",
+    name: "Quality Assurance",
+    role: "Auto-generated test runs, end-to-end user path validations, and error reporting.",
+    icon: Check,
+    color: "#a3e635",
+    gradientId: "grad-qa_bot",
+    meta: "Model: TestGPT-3 | Type: E2E Cypress"
+  },
+  {
+    id: "cyber_bot",
+    name: "Cybersecurity",
+    role: "Penetration tests, network port checks, access control rules, and vulnerability scanners.",
+    icon: ShieldCheck,
+    color: "var(--accent-red)",
+    gradientId: "grad-cyber_bot",
+    meta: "Model: SecGPT-Enterprise | Standard: SOC2"
+  },
+  {
+    id: "finance_bot",
+    name: "Finance",
+    role: "Profitability reports, payroll trackers, transaction logs, and margin optimization.",
+    icon: Briefcase,
+    color: "#fbbf24",
+    gradientId: "grad-finance_bot",
+    meta: "Model: LedgerGPT-Fintech | Target: EBITDA 45%"
+  },
+  {
+    id: "hr_bot",
+    name: "HR",
+    role: "Employee roster management, attendance logging, onboarding paths, and contract reviews.",
+    icon: Users,
+    color: "#ec4899",
+    gradientId: "grad-hr_bot",
+    meta: "Model: HRIS-GPT-Custom | Flow: Auto-Clock"
+  },
+  {
+    id: "marketing_bot",
+    name: "Marketing",
+    role: "SEO optimization campaigns, newsletter copywriting, social ad sets, and CTR/CAC stats.",
+    icon: Target,
+    color: "var(--accent-yellow)",
+    gradientId: "grad-marketing_bot",
+    meta: "Model: Copywriter-XL | Channel: Multi"
+  },
+  {
+    id: "sales_bot",
+    name: "Sales",
+    role: "Lead generation, pipeline conversion tools, contract signings, and demo booking assistants.",
+    icon: Target,
+    color: "#f59e0b",
+    gradientId: "grad-sales_bot",
+    meta: "Model: SalesGPT-v4 | CRM: Salesforce Sync"
   },
   {
     id: "legal_bot",
-    name: "Legal & Compliance Bot",
-    role: "Vendor compliance review, NDAs drafting, risk matrices validation.",
+    name: "Legal & Compliance",
+    role: "Non-Disclosure Agreements (NDA), corporate compliance reviews, and risk audits.",
     icon: ShieldCheck,
-    color: "var(--accent-red)",
+    color: "#ef4444",
     gradientId: "grad-legal_bot",
-    meta: "Model: LegalGPT-Custom | Audit SLA: 100%"
+    meta: "Model: LawGPT-3.5 | Audit SLA: 100%"
+  },
+  {
+    id: "support_bot",
+    name: "Customer Support",
+    role: "Inbound ticket resolutions, troubleshooting guidelines, customer onboarding, and feedback loops.",
+    icon: Bot,
+    color: "#06b6d4",
+    gradientId: "grad-support_bot",
+    meta: "Model: SupportGPT-Direct | CSAT Target: 99.4%"
+  },
+  {
+    id: "strategy_bot",
+    name: "Research & Strategy",
+    role: "Competitive intelligence analysis, market studies, and long-term tech roadmap trends.",
+    icon: Cpu,
+    color: "#6366f1",
+    gradientId: "grad-strategy_bot",
+    meta: "Model: ScholarGPT-Pro | Source: arXiv / OLS"
   }
 ];
 
@@ -148,7 +229,10 @@ const getConsultPresetStarters = (botId) => {
         { label: "Audit vendor regulatory compliance risk checks", query: "Formulate standard verification steps and vendor questionnaire checklists" }
       ];
     default:
-      return [];
+      return [
+        { label: "Analyze current department tasks", query: "What are the priority objectives and active bottlenecks in this department?" },
+        { label: "Draft department compliance checklist", query: "Create standard operational protocol for our weekly status review." }
+      ];
   }
 };
 
