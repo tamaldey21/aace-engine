@@ -36,17 +36,17 @@
 }
 
 [data-theme='dark'] {
-  /* Strictly black, grey and white theme */
-  --bg-main: #000000;
-  --bg-card: #121212;
-  --bg-card-hover: #1e1e1e;
-  --bg-input: #1a1a1a;
-  --border-color: #2e2e2e;
-  --border-color-glow: #444444;
+  /* Strictly black, grey and white theme matching technical optimization layout */
+  --bg-main: #08090b;
+  --bg-card: #131416;
+  --bg-card-hover: #202123;
+  --bg-input: #0f1012;
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-color-glow: rgba(255, 255, 255, 0.15);
   
   --text-primary: #ffffff;
   --text-secondary: #a3a3a3;
-  --text-muted: #6b6b6b;
+  --text-muted: #525355;
   
   --accent-cyan: #ffffff;
   --accent-blue: #e5e5e5;
@@ -55,8 +55,66 @@
   --accent-yellow: #737373;
   --accent-red: #ffffff;
   
-  --radial-1: rgba(255, 255, 255, 0.01);
-  --radial-2: rgba(255, 255, 255, 0.01);
+  --radial-1: rgba(255, 255, 255, 0.008);
+  --radial-2: rgba(255, 255, 255, 0.008);
+}
+
+/* Custom grid mesh body overlay in dark theme */
+[data-theme='dark'] body {
+  background-color: #08090b;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+  background-size: 60px 60px;
+  background-position: center;
+}
+
+[data-theme='dark'] .glass-card {
+  background-color: var(--bg-card) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: none !important;
+  border-radius: 4px !important;
+  position: relative;
+}
+
+/* Checkered Corner indicator matching image */
+[data-theme='dark'] .glass-card::after {
+  content: "⚃";
+  position: absolute;
+  bottom: 6px;
+  right: 10px;
+  font-size: 8px;
+  color: var(--text-muted);
+  opacity: 0.35;
+  font-family: var(--font-mono);
+  pointer-events: none;
+}
+
+[data-theme='dark'] .deliverable-card {
+  background-color: var(--bg-input) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 4px !important;
+}
+
+[data-theme='dark'] .nav-item {
+  border-radius: 4px !important;
+}
+
+[data-theme='dark'] .nav-item.active {
+  background: var(--bg-card-hover) !important;
+  color: #ffffff !important;
+  border-left: 3px solid #ffffff !important;
+}
+
+[data-theme='dark'] button.btn {
+  border-radius: 4px !important;
+  background: var(--bg-card-hover) !important;
+  border: 1px solid var(--border-color) !important;
+  color: #ffffff !important;
+}
+
+[data-theme='dark'] button.btn:hover {
+  background: #2a2b2d !important;
 }
 
 body {
