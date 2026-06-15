@@ -16,7 +16,6 @@ import MarketingPortal from "./components/MarketingPortal";
 import LegalPortal from "./components/LegalPortal";
 import DeptDashboard from "./components/DeptDashboard";
 import ExecutiveChat from "./components/ExecutiveChat";
-import { Sun, Moon } from "lucide-react";
 
 const INITIAL_MEMORIES = [
   "Engineering stack parameters are bound to Vite + React + Node.js.",
@@ -45,15 +44,7 @@ export function App() {
     return role === "ceo" ? "console" : "portal";
   });
   
-  const [theme, setTheme] = useState(() => {
-    return localStorage.getItem("aace_theme") || "dark";
-  });
   const [selectedDept, setSelectedDept] = useState(null);
-
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem("aace_theme", theme);
-  }, [theme]);
   const [memories, setMemories] = useState([]);
   const [apiBaseUrl, setApiBaseUrl] = useState(() => {
     return AaceApi.getApiBaseUrl();
@@ -572,27 +563,6 @@ export function App() {
           </div>
           
           <div className="system-status" style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-            <button
-              onClick={() => setTheme(prev => prev === "light" ? "dark" : "light")}
-              style={{
-                padding: "6px 10px",
-                borderRadius: "20px",
-                border: "1px solid var(--border-color)",
-                background: "rgba(255,255,255,0.04)",
-                color: "var(--text-primary)",
-                display: "flex",
-                alignItems: "center",
-                gap: "6px",
-                cursor: "pointer",
-                outline: "none"
-              }}
-              title={`Switch to ${theme === "light" ? "Dark" : "Light"} Mode`}
-            >
-              {theme === "light" ? <Moon size={13} /> : <Sun size={13} />}
-              <span style={{ fontSize: "10px", fontWeight: "bold" }}>
-                {theme === "light" ? "DARK" : "LIGHT"}
-              </span>
-            </button>
             <div style={{
               display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", fontWeight: "bold",
               padding: "4px 10px", borderRadius: "12px", border: "1px solid",
