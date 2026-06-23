@@ -2,10 +2,29 @@ import express from "express";
 import cors from "cors";
 import fs from "fs";
 import path from "path";
-import { dbReady } from "./db.js"; // Initialize connection
+import { dbReady } from "./db.js";
 import { Candidate, ChatLog, Memory, Employee, Attendance, Project, Task, Message, Metric } from "./db.js";
 import { compileHTML } from "./compiler.js";
 import { callCodingAssistant } from "./utils/llm.js";
+import { runRufloSwarm } from "./agents/ruflo-agent.js";
+
+// ── Python Agent Server proxy ───────────────────────────────────────
+const PYTHON_AGENT_URL = process.env.PYTHON_AGENT_URL || "http://localhost:8000";
+
+async function callPythonAgent(message, history) {
+  try {
+    const res = await fetch(`${PYTHON_AGENT_URL}/agent/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message, history }),
+      signal: AbortSignal.timeout(15000)
+    });
+    if (!res.ok) throw new Error(`Python agent HTTP ${res.status}`);
+    return await res.json();
+  } catch (e) {
+    throw new Error(`Python agent unavailable: ${e.message}`);
+  }
+}
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -823,7 +842,7 @@ Output ONLY the raw message content. Do not include quotes or emojis.`;
   }
 });
 
-// API: Main Engineer direct chat endpoint
+// API: Main Engineer direct chat endpoint (Ruflo → Python Agent → LLM fallback)
 app.post("/api/main-engineer/chat", async (req, res) => {
   try {
     const { message, history } = req.body;
@@ -831,40 +850,72 @@ app.post("/api/main-engineer/chat", async (req, res) => {
       return res.status(400).json({ error: "message is required" });
     }
 
-    const aiResponse = await callCodingAssistant(message, history);
-    
-    // Parse files staged inside <create_file path="...">...</create_file>
     const sandboxDir = path.join(process.cwd(), "../sandbox");
     if (!fs.existsSync(sandboxDir)) {
       fs.mkdirSync(sandboxDir, { recursive: true });
     }
 
+    const llmConfig = {
+      apiKey: process.env.OPENAI_API_KEY || process.env.LLM_API_KEY || "",
+      apiUrl: process.env.LLM_API_URL || "https://api.bluesminds.com"
+    };
+
+    // ── Route 1: Try Ruflo multi-agent swarm ──────────────────────────
+    try {
+      const rufloResult = await runRufloSwarm(message, history, llmConfig);
+      if (rufloResult.code && rufloResult.filename) {
+        const safeName = rufloResult.filename.replace(/[^a-zA-Z0-9_.-]/g, "");
+        fs.writeFileSync(path.join(sandboxDir, safeName), rufloResult.code, "utf8");
+      }
+      return res.json({
+        text: rufloResult.text,
+        agent_source: rufloResult.agentSource || "ruflo_swarm",
+        stagedFiles: rufloResult.filename ? [{ filename: rufloResult.filename }] : []
+      });
+    } catch (rufloErr) {
+      console.log("Ruflo route skipped:", rufloErr.message);
+    }
+
+    // ── Route 2: Try Python Agent Server (LangGraph + Pydantic AI) ────
+    try {
+      const pyResult = await callPythonAgent(message, history);
+      if (pyResult.files && pyResult.files.length > 0) {
+        for (const f of pyResult.files) {
+          const safeName = f.name.replace(/[^a-zA-Z0-9_.-]/g, "");
+          fs.writeFileSync(path.join(sandboxDir, safeName), f.content, "utf8");
+        }
+      }
+      return res.json({
+        text: pyResult.text,
+        agent_source: pyResult.agent_source || "langgraph",
+        stagedFiles: (pyResult.files || []).map(f => ({ filename: f.name }))
+      });
+    } catch (pyErr) {
+      console.log("Python agent route skipped:", pyErr.message);
+    }
+
+    // ── Route 3: Fallback to existing Node.js LLM ─────────────────────
+    const aiResponse = await callCodingAssistant(message, history);
     const fileRegex = /<create_file\s+path=["']([^"']+)["']\s*>([\s\S]*?)<\/create_file>/g;
     let match;
     const stagedFiles = [];
-
-    // Reset regex index
     fileRegex.lastIndex = 0;
     while ((match = fileRegex.exec(aiResponse)) !== null) {
-      const filepath = match[1].replace(/[^a-zA-Z0-9_.-]/g, ""); // sanitize
+      const filepath = match[1].replace(/[^a-zA-Z0-9_.-]/g, "");
       const content = match[2].trim();
-      
       if (filepath) {
         fs.writeFileSync(path.join(sandboxDir, filepath), content, "utf8");
         stagedFiles.push({ filename: filepath });
       }
     }
+    const cleanedText = aiResponse.replace(fileRegex, (m, fp) => `[Staged File: ${fp}]`);
+    res.json({ text: cleanedText, agent_source: "llm_fallback", stagedFiles });
 
-    // Clean XML blocks from the text sent back to chat
-    const cleanedText = aiResponse.replace(fileRegex, (m, filepath) => {
-      return `[Staged File: ${filepath}]`;
-    });
-
-    res.json({ text: cleanedText, stagedFiles });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 // API: Get sandbox files
 app.get("/api/main-engineer/sandbox", async (req, res) => {

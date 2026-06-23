@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Send, Bot, User, Terminal, FileCode, CheckCircle, AlertCircle, Cpu, Zap, Code2, RefreshCw, ChevronRight } from "lucide-react";
+import { Send, Bot, User, Terminal, FileCode, CheckCircle, AlertCircle, Cpu, Zap, Code2, RefreshCw, ChevronRight, Trash2 } from "lucide-react";
 import { AaceApi } from "../utils/api";
 
 const QUICK_PROMPTS = [
@@ -25,6 +25,18 @@ export default function MainEngineerChat() {
   const [mergeError, setMergeError] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const chatEndRef = useRef(null);
+
+  const INIT_MSG = {
+    sender: "bot",
+    text: "System link established. Main Engineer AI is online.\n\nI am your advanced agentic coding assistant. Send me any directive — I will write, stage, and deploy code directly into your sandbox. Use the quick actions below to get started instantly.",
+    time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+  };
+
+  const clearChat = () => {
+    setMessages([{ ...INIT_MSG, time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) }]);
+    setMergeMessage("");
+    setMergeError("");
+  };
 
   const loadSandbox = async () => {
     try {
@@ -69,7 +81,7 @@ export default function MainEngineerChat() {
       const res = await AaceApi.mainEngineerChat(userMsg, history);
       setIsTyping(false);
       const botTime = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-      setMessages(prev => [...prev, { sender: "bot", text: res.text, time: botTime }]);
+      setMessages(prev => [...prev, { sender: "bot", text: res.text, time: botTime, agentSource: res.agent_source || "" }]);
       await loadSandbox();
     } catch (err) {
       setIsTyping(false);
@@ -137,22 +149,39 @@ export default function MainEngineerChat() {
               }}>ONLINE</span>
             </div>
             <p style={{ margin: 0, fontSize: "11px", color: "var(--text-secondary)", marginTop: "1px" }}>
-              Agentic Coding Assistant · Sandbox Compiler · DeepMind Engine
+              Agentic Coding Assistant · Ruflo Swarms · LangGraph Workflows · Pydantic AI
             </p>
           </div>
         </div>
-        <div style={{ display: "flex", gap: "8px" }}>
-          {[
-            { label: "Gemini", color: "#4285f4" },
-            { label: "Kimi", color: "#00f0ff" },
-            { label: "GPT-4o", color: "#10b981" },
-          ].map(m => (
-            <span key={m.label} style={{
-              fontSize: "9px", fontWeight: "600", padding: "3px 8px", borderRadius: "20px",
-              background: `${m.color}18`, border: `1px solid ${m.color}40`, color: m.color,
-              letterSpacing: "0.3px"
-            }}>{m.label}</span>
-          ))}
+        <div style={{ display: "flex", flexDirection: "column", gap: "6px", alignItems: "flex-end" }}>
+          {/* Model badges */}
+          <div style={{ display: "flex", gap: "6px" }}>
+            {[
+              { label: "Gemini", color: "#4285f4" },
+              { label: "Kimi", color: "#00f0ff" },
+              { label: "GPT-4o", color: "#10b981" },
+            ].map(m => (
+              <span key={m.label} style={{
+                fontSize: "9px", fontWeight: "600", padding: "3px 8px", borderRadius: "20px",
+                background: `${m.color}18`, border: `1px solid ${m.color}40`, color: m.color,
+                letterSpacing: "0.3px"
+              }}>{m.label}</span>
+            ))}
+          </div>
+          {/* Tech stack badges */}
+          <div style={{ display: "flex", gap: "6px" }}>
+            {[
+              { label: "🌊 Ruflo", color: "#06b6d4", title: "Multi-agent swarm orchestration" },
+              { label: "🔗 LangGraph", color: "#8b5cf6", title: "Stateful agent workflows" },
+              { label: "🧱 Pydantic AI", color: "#f59e0b", title: "Type-safe AI agent framework" },
+            ].map(t => (
+              <span key={t.label} title={t.title} style={{
+                fontSize: "8px", fontWeight: "700", padding: "2px 7px", borderRadius: "20px",
+                background: `${t.color}12`, border: `1px solid ${t.color}35`, color: t.color,
+                letterSpacing: "0.2px", cursor: "default"
+              }}>{t.label}</span>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -172,6 +201,21 @@ export default function MainEngineerChat() {
           }}>
             <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#10b981", boxShadow: "0 0 6px #10b981" }} />
             <span style={{ fontSize: "10px", fontWeight: "700", color: "var(--text-secondary)", letterSpacing: "1px", textTransform: "uppercase" }}>Chat Shell v2.0</span>
+            <button
+              onClick={clearChat}
+              title="Clear chat"
+              style={{
+                marginLeft: "auto", background: "transparent", border: "none", cursor: "pointer",
+                color: "var(--text-muted)", padding: "3px 5px", borderRadius: "5px",
+                display: "flex", alignItems: "center", gap: "4px", fontSize: "9px",
+                fontWeight: "600", letterSpacing: "0.5px", textTransform: "uppercase",
+                transition: "all 0.2s"
+              }}
+              onMouseEnter={e => { e.currentTarget.style.color = "#ef4444"; e.currentTarget.style.background = "rgba(239,68,68,0.08)"; }}
+              onMouseLeave={e => { e.currentTarget.style.color = "var(--text-muted)"; e.currentTarget.style.background = "transparent"; }}
+            >
+              <Trash2 size={10} /> Clear
+            </button>
           </div>
 
           {/* Messages */}
@@ -201,9 +245,25 @@ export default function MainEngineerChat() {
                     }}>
                       {msg.text}
                     </div>
-                    <span style={{ fontSize: "9px", color: "var(--text-muted)", marginTop: "3px", display: "block", textAlign: isBot ? "left" : "right", fontFamily: "var(--font-mono)" }}>
-                      {msg.time}
-                    </span>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: isBot ? "flex-start" : "flex-end", gap: "6px", marginTop: "3px" }}>
+                      {isBot && msg.agentSource && (() => {
+                        const src = msg.agentSource;
+                        const badge = src.includes("ruflo") ? { label: "🌊 Ruflo", color: "#06b6d4" }
+                          : src.includes("langgraph") ? { label: "🔗 LangGraph", color: "#8b5cf6" }
+                          : src.includes("pydantic") ? { label: "🧱 Pydantic AI", color: "#f59e0b" }
+                          : { label: "⚡ Fallback", color: "#6b7280" };
+                        return (
+                          <span style={{
+                            fontSize: "8px", fontWeight: "700", padding: "1px 6px", borderRadius: "10px",
+                            background: `${badge.color}15`, border: `1px solid ${badge.color}35`,
+                            color: badge.color, letterSpacing: "0.2px"
+                          }}>{badge.label}</span>
+                        );
+                      })()}
+                      <span style={{ fontSize: "9px", color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}>
+                        {msg.time}
+                      </span>
+                    </div>
                   </div>
                 </div>
               );
